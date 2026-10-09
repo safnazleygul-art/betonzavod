@@ -3,10 +3,6 @@ import sqlite3
 import urllib.parse
 from datetime import datetime, timedelta
 import os
-import threading
-import webbrowser
-import pystray
-from PIL import Image, ImageDraw
 import csv
 import io
 
@@ -1664,20 +1660,6 @@ def scada():
     </script>'''
     return render_page(content, t, lang)
 
-def create_tray_icon():
-    image = Image.new('RGB', (64, 64), color="#1d232a")
-    dc = ImageDraw.Draw(image)
-    dc.rectangle((16, 16, 48, 48), fill="#ffc107")
-    return image
-
-def open_browser(icon, item):
-    webbrowser.open("http://127.0.0.1:5050/")
-
-def exit_app(icon, item):
-    icon.stop()
-    os._exit(0)
-
 if __name__ == "__main__":
-    # В локальном режиме запускаем Flask и браузер
     port = int(os.environ.get("PORT", 5050))
     app.run(host="0.0.0.0", port=port, debug=False)
