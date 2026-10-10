@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, session, url_for
+from flask import Flask, render_template_string, request, redirect, session, url_for, jsonify
 import sqlite3
 import os
 import csv
@@ -21,6 +21,7 @@ TRANSLATIONS = {
         "scada": "SCADA Pult",
         "settings": "Zavod Parametrləri",
         "modbus": "Modbus Xritələmə",
+        "modbus_control": "⚡ Modbus Test Pultu",
         "directories": "Kataloqlar",
         "drivers": "Sürücülər",
         "vehicles": "Mikserlər",
@@ -43,6 +44,7 @@ TRANSLATIONS = {
         "scada": "SCADA Kontrol",
         "settings": "Santral Ayarları",
         "modbus": "Modbus Haritalama",
+        "modbus_control": "⚡ Modbus Test Paneli",
         "directories": "Tanımlamalar",
         "drivers": "Şoförler",
         "vehicles": "Mikseller",
@@ -65,6 +67,7 @@ TRANSLATIONS = {
         "scada": "SCADA Пульт",
         "settings": "Настройки завода",
         "modbus": "Modbus Карты",
+        "modbus_control": "⚡ Тест-пульт Modbus",
         "directories": "Справочники",
         "drivers": "Водители",
         "vehicles": "Миксеры",
@@ -113,9 +116,15 @@ def init_db():
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT, plc_ip TEXT DEFAULT '192.168.1.50', plc_port INTEGER DEFAULT 502, slave_id INTEGER DEFAULT 1
         )''')
+        
+        # Таблица регистров с полем текущего значения current_val для интерактивного пульта
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_registers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, tag_name TEXT, data_type TEXT, address INTEGER, description TEXT
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tag_name TEXT, data_type TEXT, address INTEGER, description TEXT, current_val REAL DEFAULT 0.0
         )''')
+        try:
+            conn.execute("ALTER TABLE modbus_registers ADD COLUMN current_val REAL DEFAULT 0.0")
+        except sqlite3.OperationalError:
+            pass
 
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM company_info")
@@ -151,7 +160,6 @@ def init_db():
                 ("M-250 (B20)", 400, 300, 200, 150, 250, 50, 0, 0, 175, 1.5)
             ])
 
-            # Автоматический импорт shabran.gpf.csv с точным определением типов
             if os.path.exists('shabran.gpf.csv'):
                 try:
                     mod_records = []
@@ -177,9 +185,9 @@ def init_db():
                                 else:
                                     dtype = "REGISTER (WORD)"
                                 
-                                mod_records.append((tag, dtype, addr, f"DataType:{data_type}, AddrType:{addr_type}"))
+                                mod_records.append((tag, dtype, addr, f"DataType:{data_type}, AddrType:{addr_type}", 0.0))
                     if mod_records:
-                        cursor.executemany("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)", mod_records)
+                        cursor.executemany("INSERT INTO modbus_registers (tag_name, data_type, address, description, current_val) VALUES (?, ?, ?, ?, ?)", mod_records)
                 except Exception as e:
                     print("CSV Load Error:", e)
 
@@ -221,8 +229,8 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link px-2 rounded" href="/stock">{t['stock']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded" href="/reports">{t['reports']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
-                <li class="nav-item"><a class="nav-link px-2 rounded text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
-                <li class="nav-item"><a class="nav-link px-2 rounded text-danger fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
+                <li class="nav-item"><a class="nav-link px-2 rounded text-info fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
+                <li class="nav-item"><a class="nav-link px-2 rounded text-success fw-bold" href="/modbus/control">{t['modbus_control']}</a></li>
                 <li class="nav-item dropdown ms-xl-2">
                   <a class="nav-link dropdown-toggle px-2 rounded text-light fw-semibold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
                   <ul class="dropdown-menu dropdown-menu-dark shadow border-secondary">
@@ -299,8 +307,8 @@ def index():
             <hr class="border-secondary my-4">
             <div class="d-flex flex-wrap gap-3">
                 <a href="/scada" class="btn btn-warning btn-lg fw-bold px-4">🖥️ SCADA Pult & Start</a>
+                <a href="/modbus/control" class="btn btn-success btn-lg fw-bold px-4">{t['modbus_control']}</a>
                 <a href="/reports" class="btn btn-info btn-lg fw-bold px-4">📊 Analitika & Hesabatlar</a>
-                <a href="/orders" class="btn btn-outline-warning btn-lg px-4">📦 Sifarişlər</a>
             </div>
         </div>
     </div>'''
@@ -317,7 +325,7 @@ def modbus():
                 conn.execute("UPDATE modbus_settings SET plc_ip=?, plc_port=?, slave_id=? WHERE id=1",
                            (request.form['plc_ip'], request.form['plc_port'], request.form['slave_id']))
             elif 'add_tag' in request.form:
-                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
+                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description, current_val) VALUES (?, ?, ?, ?, 0.0)",
                            (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
             elif 'upload_csv' in request.files:
                 file = request.files['upload_csv']
@@ -353,8 +361,8 @@ def modbus():
                                 else:
                                     dtype = "REGISTER (WORD)"
 
-                                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
-                                             (tag, dtype, addr, f"Imported CSV (DataType:{data_type}, AddrType:{addr_type})"))
+                                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description, current_val) VALUES (?, ?, ?, ?, 0.0)",
+                                             (tag, dtype, addr, f"CSV (DataType:{data_type}, AddrType:{addr_type})"))
             conn.commit()
             return redirect('/modbus')
 
@@ -442,7 +450,109 @@ def delete_modbus_tag(reg_id):
         conn.commit()
     return redirect('/modbus')
 
-# Заглушки навигационных разделов
+# НОВЫЙ ИНТЕРАКТИВНЫЙ ТЕСТ-ПУЛЬТ (MODBUS CONTROL & MONITOR)
+@app.route('/modbus/control', methods=['GET', 'POST'])
+def modbus_control():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            tag_id = request.form.get('tag_id')
+            new_val = request.form.get('value')
+            if tag_id and new_val is not None:
+                try:
+                    val_float = float(new_val)
+                    conn.execute("UPDATE modbus_registers SET current_val = ? WHERE id = ?", (val_float, tag_id))
+                    conn.commit()
+                except ValueError:
+                    pass
+            return redirect('/modbus/control')
+
+        registers = conn.execute("SELECT id, tag_name, data_type, address, description, current_val FROM modbus_registers ORDER BY data_type, address").fetchall()
+
+    rows = ""
+    for r in registers:
+        reg_id, tag_name, dtype, addr, desc, val = r
+        val_display = int(val) if val.is_integer() else val
+        
+        if dtype == "BIT":
+            is_active = val > 0
+            status_badge = "<span class='badge bg-success'>ON (1)</span>" if is_active else "<span class='badge bg-secondary'>OFF (0)</span>"
+            toggle_val = 0 if is_active else 1
+            
+            controls = f"""
+                <div class="d-flex align-items-center gap-2">
+                    {status_badge}
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="tag_id" value="{reg_id}">
+                        <input type="hidden" name="value" value="{toggle_val}">
+                        <button type="submit" class="btn btn-sm btn-outline-warning fw-bold">🔄 Toggle</button>
+                    </form>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="tag_id" value="{reg_id}">
+                        <input type="hidden" name="value" value="1">
+                        <button type="submit" class="btn btn-sm btn-outline-success">Set 1</button>
+                    </form>
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="tag_id" value="{reg_id}">
+                        <input type="hidden" name="value" value="0">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Reset 0</button>
+                    </form>
+                </div>
+            """
+        else:
+            controls = f"""
+                <form method="POST" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="tag_id" value="{reg_id}">
+                    <input type="number" step="any" name="value" value="{val_display}" class="form-control form-control-sm w-50 font-monospace text-warning fw-bold">
+                    <button type="submit" class="btn btn-sm btn-info fw-bold">📥 Write</button>
+                </form>
+            """
+
+        type_badge = "<span class='badge bg-info text-dark'>BIT</span>" if dtype == "BIT" else ("<span class='badge bg-success'>REAL</span>" if "REAL" in dtype else "<span class='badge bg-warning text-dark'>WORD</span>")
+
+        rows += f"""<tr>
+            <td>{reg_id}</td>
+            <td><b>{tag_name}</b></td>
+            <td>{type_badge}</td>
+            <td class='font-monospace text-info fw-bold'>{addr}</td>
+            <td>{controls}</td>
+            <td class='text-muted small'>{desc}</td>
+        </tr>"""
+
+    content = f'''
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-success mb-1">⚡ Modbus TCP Test & Control Panel</h2>
+            <p class="text-secondary mb-0">Отправка команд, переключение битов (Toggle / Reset / Set) и запись значений в регистры в реальном времени.</p>
+        </div>
+        <a href="/modbus" class="btn btn-outline-light btn-sm">⚙️ Настройка тегов</a>
+    </div>
+
+    <div class="card p-4 shadow border-success">
+        <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+            <table class="table table-dark table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>{t['id']}</th>
+                        <th>Tag Name</th>
+                        <th>Type</th>
+                        <th>Address</th>
+                        <th>Value & Control (Read / Write / Toggle)</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+# Остальные заглушки навигации
 @app.route('/orders')
 def orders(): return render_page("<h2 class='text-warning'>📦 Sifarişlər Modulu</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/recipes')
