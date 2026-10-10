@@ -268,6 +268,18 @@ TRANSLATIONS = {
     }
 }
 
+def get_labels():
+    defaults = {
+        'bunker_1': 'Bunker 1', 'bunker_2': 'Bunker 2', 'bunker_3': 'Bunker 3', 'bunker_4': 'Bunker 4',
+        'silo_1': 'Silo 1', 'silo_2': 'Silo 2', 'silo_3': 'Silo 3', 'silo_4': 'Silo 4',
+        'water': 'Su', 'additive': 'Qatqı'
+    }
+    with sqlite3.connect(DB) as conn:
+        rows = conn.execute("SELECT key_name, display_name FROM material_labels").fetchall()
+        for r in rows:
+            defaults[r[0]] = r[1]
+    return defaults
+
 def init_db():
     with sqlite3.connect(DB) as conn:
         conn.execute('''CREATE TABLE IF NOT EXISTS company_info (
@@ -279,13 +291,14 @@ def init_db():
             gate_pulse_period_sec REAL, discharge_time_sec REAL, transporter_stop_delay_sec REAL,
             inter_hopper_open_sec REAL, cement_delay_sec REAL, water_delay_sec REAL, additive_delay_sec REAL
         )''')
+        conn.execute('''CREATE TABLE IF NOT EXISTS material_labels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, key_name TEXT UNIQUE, display_name TEXT
+        )''')
         conn.execute('''CREATE TABLE IF NOT EXISTS operators (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT)''')
         conn.execute('''CREATE TABLE IF NOT EXISTS drivers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, license_number TEXT)''')
-        
         conn.execute('''CREATE TABLE IF NOT EXISTS vehicles (
             id INTEGER PRIMARY KEY AUTOINCREMENT, plate_number TEXT, capacity_m3 REAL, driver_id INTEGER, tare_weight_kg REAL DEFAULT 12000.0
         )''')
-
         conn.execute('''CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contact TEXT, address TEXT)''')
         conn.execute('''CREATE TABLE IF NOT EXISTS suppliers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contact TEXT)''')
         
@@ -306,18 +319,11 @@ def init_db():
         )''')
 
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            plc_ip TEXT DEFAULT '192.168.1.50',
-            plc_port INTEGER DEFAULT 502,
-            slave_id INTEGER DEFAULT 1
+            id INTEGER PRIMARY KEY AUTOINCREMENT, plc_ip TEXT DEFAULT '192.168.1.50', plc_port INTEGER DEFAULT 502, slave_id INTEGER DEFAULT 1
         )''')
 
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_registers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tag_name TEXT UNIQUE,
-            data_type TEXT,
-            address INTEGER,
-            description TEXT
+            id INTEGER PRIMARY KEY AUTOINCREMENT, tag_name TEXT UNIQUE, data_type TEXT, address INTEGER, description TEXT
         )''')
 
         cursor = conn.cursor()
@@ -328,6 +334,13 @@ def init_db():
             
             cursor.execute("INSERT INTO factory_settings (mixer_capacity_m3, mixing_time_sec, gate_open_time_sec, gate_pulse_period_sec, discharge_time_sec, transporter_stop_delay_sec, inter_hopper_open_sec, cement_delay_sec, water_delay_sec, additive_delay_sec) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                            (2.0, 45.0, 5.0, 1.0, 30.0, 3.5, 4.0, 2.0, 1.0, 1.5))
+
+            defaults = [
+                ('bunker_1', 'Bunker 1'), ('bunker_2', 'Bunker 2'), ('bunker_3', 'Bunker 3'), ('bunker_4', 'Bunker 4'),
+                ('silo_1', 'Silo 1'), ('silo_2', 'Silo 2'), ('silo_3', 'Silo 3'), ('silo_4', 'Silo 4'),
+                ('water', 'Su'), ('additive', 'Qatqı')
+            ]
+            cursor.executemany("INSERT OR IGNORE INTO material_labels (key_name, display_name) VALUES (?, ?)", defaults)
 
             cursor.executemany("INSERT INTO operators (name, phone) VALUES (?, ?)", [
                 ("Mürad İbrahimov", "+994558565506"), ("Elşən Məmmədov", "+994502223344"), ("Kamran Hüseynov", "+994553334455")
@@ -388,16 +401,6 @@ def init_db():
                     print("Error loading shabran.gpf.csv:", e)
 
             cursor.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
-
-            now = datetime.now()
-            orders_data = [
-                ((now - timedelta(days=3)).isoformat(), 1, 1, 1, 10.0, 110.0, 1),
-                ((now - timedelta(days=2)).isoformat(), 2, 2, 2, 12.0, 110.0, 2),
-                ((now - timedelta(days=1)).isoformat(), 3, 3, 3, 8.0, 120.0, 1),
-                (now.isoformat(), 1, 2, 4, 16.0, 120.0, 3)
-            ]
-            for od in orders_data:
-                cursor.execute("INSERT INTO orders (date, client_id, vehicle_id, recipe_id, volume_m3, price_per_m3, operator_id) VALUES (?, ?, ?, ?, ?, ?, ?)", od)
             conn.commit()
 
 init_db()
@@ -473,7 +476,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
         <style>
             body {{ background-color: #121619; color: #e9ecef; }}
             .card {{ background-color: #1d232a; border: 1px solid #2f363d; color: #e9ecef; }}
-            .table {{ color: #e9ecef; font-size: 0.9rem; }}
+            .table {{ color: #e9ecef; font-size: 0.85rem; }}
             .table-striped > tbody > tr:nth-of-type(odd) {{ color: #e9ecef; background-color: #181d22; }}
             .form-control, .form-select {{ background-color: #262d35; color: #fff; border: 1px solid #3d4650; }}
             .form-control:focus, .form-select:focus {{ background-color: #262d35; color: #fff; border-color: #ffc107; box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25); }}
@@ -489,7 +492,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
     </head>
     <body>
         {nav_bar}
-        <div class="container mb-5">{content_html}</div>
+        <div class="container-fluid px-4 mb-5">{content_html}</div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
     </html>
@@ -517,7 +520,221 @@ def index():
     </div>'''
     return render_page(content, t, lang)
 
-# --- ORDERS (SİPARİŞLƏR) + ADD & DELETE ---
+# --- RECIPES (RESEPTLƏR) + TOTAL CUBIC WEIGHT & ADDITIVE KG CALCULATION + CRUD ---
+@app.route('/recipes', methods=['GET', 'POST'])
+def recipes():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    labels = get_labels()
+    
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add_recipe' in request.form:
+                conn.execute("""
+                    INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    request.form['name'], float(request.form['b1']), float(request.form['b2']),
+                    float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
+                    float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
+                    float(request.form['water']), float(request.form['qatki'])
+                ))
+                conn.commit()
+                return redirect('/recipes')
+
+        recipes_list = conn.execute("SELECT * FROM recipes").fetchall()
+
+    rows = ""
+    for r in recipes_list:
+        # Calculate total cement / binder weight
+        total_cement = r[6] + r[7] + r[8] + r[9]
+        # Calculate additive kg from percentage of cement
+        additive_kg = total_cement * (r[11] / 100.0)
+        # Calculate total weight per 1 m3
+        total_weight_m3 = r[2] + r[3] + r[4] + r[5] + total_cement + r[10] + additive_kg
+        
+        rows += f"""<tr>
+            <td>{r[0]}</td>
+            <td><b>{r[1]}</b></td>
+            <td>{r[2]} kq</td>
+            <td>{r[3]} kq</td>
+            <td>{r[4]} kq</td>
+            <td>{r[5]} kq</td>
+            <td>{r[6]} kq</td>
+            <td>{r[7]} kq</td>
+            <td>{r[8]} kq</td>
+            <td>{r[9]} kq</td>
+            <td>{r[10]} lt</td>
+            <td><b>{r[11]}%</b> <span class='text-info'>({additive_kg:.1f} kq)</span></td>
+            <td class='text-warning fw-bold'>{total_weight_m3:,.1f} kq</td>
+            <td>
+                <a href='/recipes/edit/{r[0]}' class='btn btn-warning btn-sm me-1'>✏️ {t['edit']}</a>
+                <a href='/recipes/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
+            </td>
+        </tr>"""
+
+    content = f'''
+    <h2 class="text-warning mb-4">🧪 {t['recipes']}</h2>
+    
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Resept Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add_recipe" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" placeholder="Məs: M-350 (B25)" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_1']} (kq)</label><input type="number" step="1" name="b1" class="form-control" value="450" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_2']} (kq)</label><input type="number" step="1" name="b2" class="form-control" value="350" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_3']} (kq)</label><input type="number" step="1" name="b3" class="form-control" value="250" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_4']} (kq)</label><input type="number" step="1" name="b4" class="form-control" value="150" required></div>
+                
+                <div class="col-md-2 mb-2"><label>{labels['silo_1']} (kq)</label><input type="number" step="1" name="s1" class="form-control" value="300" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_2']} (kq)</label><input type="number" step="1" name="s2" class="form-control" value="100" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_3']} (kq)</label><input type="number" step="1" name="s3" class="form-control" value="0" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_4']} (kq)</label><input type="number" step="1" name="s4" class="form-control" value="0" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['water']} (lt)</label><input type="number" step="1" name="water" class="form-control" value="170" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['additive']} (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="1.5" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">💾 Resepti Yadda Saxla</button>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center">
+                <thead>
+                    <tr class="table-dark">
+                        <th>ID</th>
+                        <th>Marka / Ad</th>
+                        <th>{labels['bunker_1']}</th>
+                        <th>{labels['bunker_2']}</th>
+                        <th>{labels['bunker_3']}</th>
+                        <th>{labels['bunker_4']}</th>
+                        <th>{labels['silo_1']}</th>
+                        <th>{labels['silo_2']}</th>
+                        <th>{labels['silo_3']}</th>
+                        <th>{labels['silo_4']}</th>
+                        <th>{labels['water']}</th>
+                        <th>{labels['additive']}</th>
+                        <th class="text-warning">Ümumi Çəki (m³)</th>
+                        <th>{t['action']}</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+    </div>'''
+    return render_page(content, t, lang)
+
+@app.route('/recipes/edit/<int:id>', methods=['GET', 'POST'])
+def edit_recipe(id):
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    labels = get_labels()
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            conn.execute("""
+                UPDATE recipes SET name=?, bunker_1=?, bunker_2=?, bunker_3=?, bunker_4=?, silo_1=?, silo_2=?, silo_3=?, silo_4=?, water=?, qatki_percent=?
+                WHERE id=?
+            """, (
+                request.form['name'], float(request.form['b1']), float(request.form['b2']),
+                float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
+                float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
+                float(request.form['water']), float(request.form['qatki']), id
+            ))
+            conn.commit()
+            return redirect('/recipes')
+        r = conn.execute("SELECT * FROM recipes WHERE id=?", (id,)).fetchone()
+
+    content = f'''
+    <h2 class="text-warning mb-4">✏️ Resepti Redaktə Et: {r[1]}</h2>
+    <div class="card p-4 shadow border-warning">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-4 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" value="{r[1]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_1']} (kq)</label><input type="number" name="b1" class="form-control" value="{r[2]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_2']} (kq)</label><input type="number" name="b2" class="form-control" value="{r[3]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_3']} (kq)</label><input type="number" name="b3" class="form-control" value="{r[4]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['bunker_4']} (kq)</label><input type="number" name="b4" class="form-control" value="{r[5]}" required></div>
+                
+                <div class="col-md-2 mb-2"><label>{labels['silo_1']}</label><input type="number" name="s1" class="form-control" value="{r[6]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_2']}</label><input type="number" name="s2" class="form-control" value="{r[7]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_3']}</label><input type="number" name="s3" class="form-control" value="{r[8]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['silo_4']}</label><input type="number" name="s4" class="form-control" value="{r[9]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['water']} (lt)</label><input type="number" name="water" class="form-control" value="{r[10]}" required></div>
+                <div class="col-md-2 mb-2"><label>{labels['additive']} (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="{r[11]}" required></div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-warning fw-bold px-4">{t['save']}</button>
+                <a href="/recipes" class="btn btn-secondary">{t['back']}</a>
+            </div>
+        </form>
+    </div>'''
+    return render_page(content, t, lang)
+
+@app.route('/recipes/delete/<int:id>')
+def delete_recipe(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM recipes WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/recipes')
+
+# --- SETTINGS (FACTORY & MATERIAL LABELS) ---
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'save_labels' in request.form:
+                for key in ['bunker_1', 'bunker_2', 'bunker_3', 'bunker_4', 'silo_1', 'silo_2', 'silo_3', 'silo_4', 'water', 'additive']:
+                    val = request.form.get(key)
+                    if val:
+                        conn.execute("INSERT OR REPLACE INTO material_labels (key_name, display_name) VALUES (?, ?)", (key, val))
+                conn.commit()
+                return redirect('/settings')
+
+        f_set = conn.execute("SELECT * FROM factory_settings LIMIT 1").fetchone()
+    
+    labels = get_labels()
+
+    content = f'''
+    <h2 class="text-warning mb-4">⚙️ {t['settings']} (Parametrlər və Material Adları)</h2>
+    
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">🏷️ Bunker və Silo Adlarının Redaktəsi (Material Növləri)</h4>
+        <form method="POST">
+            <input type="hidden" name="save_labels" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-3"><label>Bunker 1 Adı</label><input type="text" name="bunker_1" class="form-control" value="{labels['bunker_1']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 2 Adı</label><input type="text" name="bunker_2" class="form-control" value="{labels['bunker_2']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 3 Adı</label><input type="text" name="bunker_3" class="form-control" value="{labels['bunker_3']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 4 Adı</label><input type="text" name="bunker_4" class="form-control" value="{labels['bunker_4']}" required></div>
+                
+                <div class="col-md-3 mb-3"><label>Silo 1 Adı (Sement)</label><input type="text" name="silo_1" class="form-control" value="{labels['silo_1']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 2 Adı (Sement)</label><input type="text" name="silo_2" class="form-control" value="{labels['silo_2']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 3 Adı</label><input type="text" name="silo_3" class="form-control" value="{labels['silo_3']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 4 Adı</label><input type="text" name="silo_4" class="form-control" value="{labels['silo_4']}" required></div>
+                
+                <div class="col-md-6 mb-3"><label>Su Adı</label><input type="text" name="water" class="form-control" value="{labels['water']}" required></div>
+                <div class="col-md-6 mb-3"><label>Qatqı Adı</label><input type="text" name="additive" class="form-control" value="{labels['additive']}" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning fw-bold px-4">💾 Adları Yadda Saxla</button>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow">
+        <h4 class="text-info mb-3">🏭 Zavod Texniki Parametrləri</h4>
+        <div class="row">
+            <div class="col-md-4 mb-3"><label>Mikser Həcmi (m³)</label><input type="text" class="form-control" value="{f_set[1] if f_set else 2.0}" readonly></div>
+            <div class="col-md-4 mb-3"><label>{t['mixing_time']}</label><input type="text" class="form-control" value="{f_set[2] if f_set else 45.0}" readonly></div>
+            <div class="col-md-4 mb-3"><label>{t['gate_open_time']}</label><input type="text" class="form-control" value="{f_set[3] if f_set else 5.0}" readonly></div>
+        </div>
+        <a href="/" class="btn btn-secondary mt-2">{t['back']}</a>
+    </div>'''
+    return render_page(content, t, lang)
+
+# --- ORDERS (SİPARİŞLƏR) ---
 @app.route('/orders', methods=['GET', 'POST'])
 def orders():
     lang = get_lang()
@@ -633,152 +850,6 @@ def delete_order(id):
         conn.execute("DELETE FROM orders WHERE id=?", (id,))
         conn.commit()
     return redirect('/orders')
-
-# --- RECIPES (RESEPTLƏR) + ADD, EDIT, DELETE ---
-@app.route('/recipes', methods=['GET', 'POST'])
-def recipes():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        if request.method == 'POST':
-            if 'add_recipe' in request.form:
-                conn.execute("""
-                    INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    request.form['name'], float(request.form['b1']), float(request.form['b2']),
-                    float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
-                    float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
-                    float(request.form['water']), float(request.form['qatki'])
-                ))
-                conn.commit()
-                return redirect('/recipes')
-
-        recipes_list = conn.execute("SELECT * FROM recipes").fetchall()
-
-    rows = ""
-    for r in recipes_list:
-        rows += f"""<tr>
-            <td>{r[0]}</td>
-            <td><b>{r[1]}</b></td>
-            <td>{r[2]} kq</td>
-            <td>{r[3]} kq</td>
-            <td>{r[4]} kq</td>
-            <td>{r[5]} kq</td>
-            <td>{r[6]} kq</td>
-            <td>{r[7]} kq</td>
-            <td>{r[8]} kq</td>
-            <td>{r[9]} kq</td>
-            <td>{r[10]} lt</td>
-            <td>{r[11]} %</td>
-            <td>
-                <a href='/recipes/edit/{r[0]}' class='btn btn-warning btn-sm me-1'>✏️ {t['edit']}</a>
-                <a href='/recipes/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
-            </td>
-        </tr>"""
-
-    content = f'''
-    <h2 class="text-warning mb-4">🧪 {t['recipes']}</h2>
-    
-    <div class="card p-4 shadow mb-4 border-warning">
-        <h4 class="text-warning mb-3">➕ Yeni Resept Əlavə Et</h4>
-        <form method="POST">
-            <input type="hidden" name="add_recipe" value="1">
-            <div class="row">
-                <div class="col-md-4 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" placeholder="Məs: M-350 (B25)" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 1 (kq)</label><input type="number" step="1" name="b1" class="form-control" value="450" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 2 (kq)</label><input type="number" step="1" name="b2" class="form-control" value="350" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 3 (kq)</label><input type="number" step="1" name="b3" class="form-control" value="250" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 4 (kq)</label><input type="number" step="1" name="b4" class="form-control" value="150" required></div>
-                
-                <div class="col-md-2 mb-2"><label>Silo 1 (Sement)</label><input type="number" step="1" name="s1" class="form-control" value="300" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 2 (Sement)</label><input type="number" step="1" name="s2" class="form-control" value="100" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 3</label><input type="number" step="1" name="s3" class="form-control" value="0" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 4</label><input type="number" step="1" name="s4" class="form-control" value="0" required></div>
-                <div class="col-md-2 mb-2"><label>Su (lt)</label><input type="number" step="1" name="water" class="form-control" value="170" required></div>
-                <div class="col-md-2 mb-2"><label>Qatqı (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="1.5" required></div>
-            </div>
-            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">💾 Resepti Yadda Saxla</button>
-        </form>
-    </div>
-
-    <div class="card p-4 shadow">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark">
-                        <th>ID</th>
-                        <th>Marka / Ad</th>
-                        <th>Bunker 1</th>
-                        <th>Bunker 2</th>
-                        <th>Bunker 3</th>
-                        <th>Bunker 4</th>
-                        <th>Silo 1</th>
-                        <th>Silo 2</th>
-                        <th>Silo 3</th>
-                        <th>Silo 4</th>
-                        <th>Su</th>
-                        <th>Qatqı</th>
-                        <th>{t['action']}</th>
-                    </tr>
-                </thead>
-                <tbody>{rows}</tbody>
-            </table>
-        </div>
-    </div>'''
-    return render_page(content, t, lang)
-
-@app.route('/recipes/edit/<int:id>', methods=['GET', 'POST'])
-def edit_recipe(id):
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        if request.method == 'POST':
-            conn.execute("""
-                UPDATE recipes SET name=?, bunker_1=?, bunker_2=?, bunker_3=?, bunker_4=?, silo_1=?, silo_2=?, silo_3=?, silo_4=?, water=?, qatki_percent=?
-                WHERE id=?
-            """, (
-                request.form['name'], float(request.form['b1']), float(request.form['b2']),
-                float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
-                float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
-                float(request.form['water']), float(request.form['qatki']), id
-            ))
-            conn.commit()
-            return redirect('/recipes')
-        r = conn.execute("SELECT * FROM recipes WHERE id=?", (id,)).fetchone()
-
-    content = f'''
-    <h2 class="text-warning mb-4">✏️ Resepti Redaktə Et: {r[1]}</h2>
-    <div class="card p-4 shadow border-warning">
-        <form method="POST">
-            <div class="row">
-                <div class="col-md-4 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" value="{r[1]}" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 1 (kq)</label><input type="number" name="b1" class="form-control" value="{r[2]}" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 2 (kq)</label><input type="number" name="b2" class="form-control" value="{r[3]}" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 3 (kq)</label><input type="number" name="b3" class="form-control" value="{r[4]}" required></div>
-                <div class="col-md-2 mb-2"><label>Bunker 4 (kq)</label><input type="number" name="b4" class="form-control" value="{r[5]}" required></div>
-                
-                <div class="col-md-2 mb-2"><label>Silo 1</label><input type="number" name="s1" class="form-control" value="{r[6]}" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 2</label><input type="number" name="s2" class="form-control" value="{r[7]}" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 3</label><input type="number" name="s3" class="form-control" value="{r[8]}" required></div>
-                <div class="col-md-2 mb-2"><label>Silo 4</label><input type="number" name="s4" class="form-control" value="{r[9]}" required></div>
-                <div class="col-md-2 mb-2"><label>Su (lt)</label><input type="number" name="water" class="form-control" value="{r[10]}" required></div>
-                <div class="col-md-2 mb-2"><label>Qatqı (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="{r[11]}" required></div>
-            </div>
-            <div class="mt-3">
-                <button type="submit" class="btn btn-warning fw-bold px-4">{t['save']}</button>
-                <a href="/recipes" class="btn btn-secondary">{t['back']}</a>
-            </div>
-        </form>
-    </div>'''
-    return render_page(content, t, lang)
-
-@app.route('/recipes/delete/<int:id>')
-def delete_recipe(id):
-    with sqlite3.connect(DB) as conn:
-        conn.execute("DELETE FROM recipes WHERE id=?", (id,))
-        conn.commit()
-    return redirect('/recipes')
 
 # --- STOCK (ANBAR) ---
 @app.route('/stock', methods=['GET', 'POST'])
@@ -1148,26 +1219,6 @@ def scada():
     </div>'''
     return render_page(content, t, lang)
 
-@app.route('/settings')
-def settings():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        f_set = conn.execute("SELECT * FROM factory_settings LIMIT 1").fetchone()
-    content = f'''
-    <h2 class="text-warning mb-4">⚙️ {t['settings']} (Factory Parameters)</h2>
-    <div class="card p-4 shadow">
-        <form method="POST">
-            <div class="row">
-                <div class="col-md-4 mb-3"><label>Mikser Həcmi (m³)</label><input type="text" class="form-control" value="{f_set[1] if f_set else 2.0}" readonly></div>
-                <div class="col-md-4 mb-3"><label>{t['mixing_time']}</label><input type="text" class="form-control" value="{f_set[2] if f_set else 45.0}" readonly></div>
-                <div class="col-md-4 mb-3"><label>{t['gate_open_time']}</label><input type="text" class="form-control" value="{f_set[3] if f_set else 5.0}" readonly></div>
-            </div>
-            <a href="/" class="btn btn-secondary">{t['back']}</a>
-        </form>
-    </div>'''
-    return render_page(content, t, lang)
-
 @app.route('/company')
 def company():
     lang = get_lang()
@@ -1224,7 +1275,7 @@ def clients():
     content = f'''<h2 class="text-warning mb-4">🏢 {t['clients']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>{t['client']}</th><th>Tel</th><th>{t['address']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
 
-@app.row if False else app.route('/suppliers')
+@app.route('/suppliers')
 def suppliers():
     lang = get_lang()
     t = TRANSLATIONS[lang]
