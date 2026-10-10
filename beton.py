@@ -382,14 +382,14 @@ def render_page(content_html, t, current_lang, hide_nav=False):
     nav_bar = ""
     if not hide_nav:
         nav_bar = f"""
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary mb-4 shadow px-3 d-print-none">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark border-bottom border-secondary mb-4 shadow px-3 d-print-none">
           <div class="container-fluid">
             <a class="navbar-brand text-warning fw-bold fs-5" href="/">🏗️ {comp_name}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
               <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-              <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-xl-center">
+              <ul class="navbar-nav me-auto mb-2 mb-md-0 align-items-md-center">
                 <li class="nav-item"><a class="nav-link" href="/">{t['home']}</a></li>
                 <li class="nav-item"><a class="nav-link" href="/orders">{t['orders']}</a></li>
                 <li class="nav-item"><a class="nav-link" href="/recipes">{t['recipes']}</a></li>
@@ -397,7 +397,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link" href="/reports">{t['reports']}</a></li>
                 <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
                 <li class="nav-item"><a class="nav-link text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
-                <li class="nav-item dropdown ms-xl-2">
+                <li class="nav-item dropdown ms-md-2">
                   <a class="nav-link dropdown-toggle text-info fw-bold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
                   <ul class="dropdown-menu dropdown-menu-dark shadow">
                     <li><a class="dropdown-item" href="/company">{t['company']}</a></li>
@@ -428,6 +428,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
     <html lang="{current_lang}">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{t['title']}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
