@@ -1,9 +1,8 @@
-from flask import Flask, request, redirect, session, url_for, Response, flash, send_file
+from flask import Flask, request, redirect, session, url_for, Response, flash
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 import csv
 import io
-import os
 import qrcode
 import base64
 
@@ -23,16 +22,14 @@ def init_db():
         conn.execute('CREATE TABLE IF NOT EXISTS suppliers (id INTEGER PRIMARY KEY, name TEXT, contact TEXT)')
         conn.execute('CREATE TABLE IF NOT EXISTS recipes (id INTEGER PRIMARY KEY, name TEXT, bunker_1 REAL, bunker_2 REAL, bunker_3 REAL, bunker_4 REAL, silo_1 REAL, silo_2 REAL, silo_3 REAL, silo_4 REAL, water REAL, qatki_percent REAL)')
         conn.execute('CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, date TEXT, client_id INTEGER, vehicle_id INTEGER, recipe_id INTEGER, volume_m3 REAL, price_per_m3 REAL, operator_id INTEGER, status TEXT)')
-        conn.execute('CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY, material_type TEXT, code_name TEXT, current_kg REAL, max_capacity_kg REAL)')
-        conn.execute('CREATE TABLE IF NOT EXISTS stock_movements (id INTEGER PRIMARY KEY, date TEXT, material_code TEXT, movement_type TEXT, quantity_kg REAL, order_id INTEGER, description TEXT)')
-        conn.execute('CREATE TABLE IF NOT EXISTS modbus_settings (id INTEGER PRIMARY KEY, plc_ip TEXT, plc_port INTEGER, slave_id INTEGER)')
-        conn.execute('CREATE TABLE IF NOT EXISTS modbus_registers (id INTEGER PRIMARY KEY, tag_name TEXT UNIQUE, data_type TEXT, address INTEGER, description TEXT)')
+        conn.execute('CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY, material_type TEXT, code_name TEXT, current_kg REAL, max_capacity_kg REAL, added_by TEXT, supplier_id INTEGER, vehicle_id INTEGER, last_update TEXT)')
+        conn.execute('CREATE TABLE IF NOT EXISTS stock_movements (id INTEGER PRIMARY KEY, date TEXT, material_code TEXT, movement_type TEXT, quantity_kg REAL, order_id INTEGER, description TEXT, operator_name TEXT)')
         
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM company_info")
         if cursor.fetchone()[0] == 0:
             cursor.execute("INSERT INTO company_info (name, address, phone, tax_number) VALUES (?, ?, ?, ?)",
-                           ("Beton Zavod LLC", "Baki, Azerbaijan", "+994558565506", "9900123456"))
+                           ("BETON ZAVOD LLC", "Baki, Azerbaijan", "+994558565506", "9900123456"))
             
             defaults = [('bunker_1', 'Щебень 5-20'), ('bunker_2', 'Щебень 20-40'), ('bunker_3', 'Песок'), 
                         ('bunker_4', 'Песок намывной'), ('silo_1', 'Цемент CEM I 42.5'), ('silo_2', 'Цемент CEM II 32.5'),
@@ -50,18 +47,22 @@ def init_db():
             cursor.executemany("INSERT INTO suppliers (name, contact) VALUES (?, ?)", 
                              [("Holcim Azerbaijan", "+994126990000"), ("Norm Sement", "+994124250000")])
             
-            stock_data = [('AGGREGATE', 'bunker_1', 85000.0, 100000.0), ('AGGREGATE', 'bunker_2', 72000.0, 100000.0),
-                          ('AGGREGATE', 'bunker_3', 94000.0, 120000.0), ('AGGREGATE', 'bunker_4', 88000.0, 120000.0),
-                          ('CEMENT', 'silo_1', 45000.0, 60000.0), ('CEMENT', 'silo_2', 32000.0, 60000.0),
-                          ('CEMENT', 'silo_3', 15000.0, 40000.0), ('CEMENT', 'silo_4', 20000.0, 50000.0),
-                          ('WATER', 'water', 50000.0, 50000.0), ('ADDITIVE', 'additive', 5000.0, 10000.0)]
-            cursor.executemany("INSERT INTO stock (material_type, code_name, current_kg, max_capacity_kg) VALUES (?, ?, ?, ?)", stock_data)
+            stock_data = [('AGGREGATE', 'bunker_1', 85000.0, 100000.0, 'Admin', 1, 1, datetime.now().isoformat()),
+                          ('AGGREGATE', 'bunker_2', 72000.0, 100000.0, 'Admin', 1, 1, datetime.now().isoformat()),
+                          ('AGGREGATE', 'bunker_3', 94000.0, 120000.0, 'Admin', 1, 1, datetime.now().isoformat()),
+                          ('AGGREGATE', 'bunker_4', 88000.0, 120000.0, 'Admin', 1, 1, datetime.now().isoformat()),
+                          ('CEMENT', 'silo_1', 45000.0, 60000.0, 'Admin', 2, 1, datetime.now().isoformat()),
+                          ('CEMENT', 'silo_2', 32000.0, 60000.0, 'Admin', 2, 1, datetime.now().isoformat()),
+                          ('CEMENT', 'silo_3', 15000.0, 40000.0, 'Admin', 2, 1, datetime.now().isoformat()),
+                          ('CEMENT', 'silo_4', 20000.0, 50000.0, 'Admin', 2, 1, datetime.now().isoformat()),
+                          ('WATER', 'water', 50000.0, 50000.0, 'Admin', None, None, datetime.now().isoformat()),
+                          ('ADDITIVE', 'additive', 5000.0, 10000.0, 'Admin', 1, 1, datetime.now().isoformat())]
+            cursor.executemany("INSERT INTO stock (material_type, code_name, current_kg, max_capacity_kg, added_by, supplier_id, vehicle_id, last_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", stock_data)
             
             cursor.executemany("INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [("M-200 (B15)", 450, 320, 210, 160, 200, 50, 0, 0, 180, 1.0),
                  ("M-300 (B22.5)", 450, 350, 250, 150, 300, 100, 0, 0, 165, 2.0)])
             
-            cursor.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
             conn.commit()
 
 try:
@@ -69,24 +70,120 @@ try:
 except Exception as e:
     print(f"DB Error: {e}")
 
-# ==================== МУЛЬТИЯЗЫЧНОСТЬ ====================
+# ==================== ПОЛНЫЕ ПЕРЕВОДЫ (ЧЕТКОЕ РАЗДЕЛЕНИЕ) ====================
 TRANSLATIONS = {
-    "az": {"title": "Beton Zavod SCADA", "home": "Əsas səhifə", "orders": "Sifarişlər", "recipes": "Reseptlər",
-           "stock": "Anbar", "reports": "Hesabatlar", "scada": "SCADA", "settings": "Parametrlər",
-           "client": "Müştəri", "mixer": "Mikser", "recipe": "Resept", "volume": "Həcm (m³)",
-           "operator": "Operator", "confirm_order": "Təsdiq Et", "add": "Əlavə et", "delete": "Sil",
-           "save": "Yadda saxla", "edit": "Redaktə", "export_csv": "CSV İxrac", "waybill": "Qaimə",
-           "total_price": "Məbləğ", "lang_name": "AZ", "back": "Geri", "print": "Çap et",
-           "stock_report": "Anbar Hesabatı", "concrete_report": "Beton Hesabatı",
-           "client_report": "Müştəri Hesabatı", "vehicle_report": "Maşın Hesabatı"},
-    "ru": {"title": "Бетонный Завод SCADA", "home": "Главная", "orders": "Заказы", "recipes": "Рецепты",
-           "stock": "Склад", "reports": "Отчеты", "scada": "SCADA", "settings": "Настройки",
-           "client": "Клиент", "mixer": "Миксер", "recipe": "Рецепт", "volume": "Объем (м³)",
-           "operator": "Оператор", "confirm_order": "Подтвердить", "add": "Добавить", "delete": "Удалить",
-           "save": "Сохранить", "edit": "Править", "export_csv": "Экспорт CSV", "waybill": "Накладная",
-           "total_price": "Сумма", "lang_name": "RU", "back": "Назад", "print": "Печать",
-           "stock_report": "Отчет по складу", "concrete_report": "Отчет по бетону",
-           "client_report": "Отчет по клиентам", "vehicle_report": "Отчет по машинам"}
+    "az": {
+        "title": "Beton Zavod SCADA",
+        "home": "Əsas səhifə",
+        "orders": "Sifarişlər və Qaimələr",
+        "recipes": "Reseptlər",
+        "stock": "Anbar və Xammal",
+        "reports": "Hesabatlar və Analitika",
+        "scada": "SCADA Pult",
+        "settings": "Parametrlər",
+        "directories": "Sorğular",
+        "drivers": "Sürücülər",
+        "vehicles": "Mikserlər",
+        "clients": "Müştərilər",
+        "suppliers": "Təchizatçılar",
+        "operators": "Operatorlar",
+        "company": "Müəssisə Məlumatları",
+        "lang_name": "Azərbaycan dili",
+        "delete": "Sil",
+        "edit": "Redaktə",
+        "add": "Əlavə et",
+        "save": "Yadda saxla",
+        "back": "Geri qayıt",
+        "waybill": "Nəqliyyat Qaiməsi",
+        "export_csv": "CSV İxrac",
+        "confirm_order": "Təsdiq Et və Anbardan Çıx",
+        "client": "Müştəri",
+        "mixer": "Mikser",
+        "recipe": "Resept",
+        "volume": "Həcm (m³)",
+        "price_m3": "1 m³ Qiyməti",
+        "operator": "Operator",
+        "id": "ID",
+        "date": "Tarix",
+        "action": "Əməliyyat",
+        "material": "Material",
+        "current_stock": "Cari Qalıq",
+        "max_capacity": "Max Tutum",
+        "added_by": "Əlavə edən",
+        "supplier": "Təchizatçı",
+        "vehicle": "Maşın",
+        "quantity_kg": "Miqtar (kq)",
+        "last_update": "Son yeniləmə",
+        "stock_report": "Anbar Hesabatı",
+        "concrete_report": "Beton Hesabatı",
+        "client_report": "Müştəri Hesabatı",
+        "vehicle_report": "Maşın Hesabatı",
+        "print": "Çap et",
+        "total_price": "Ümumi Məbləğ",
+        "insufficient_stock": "Xəta: Anbarda kifayət qədər xammal yoxdur!",
+        "delivered_by": "Təhvil Verən",
+        "received_by": "Təhvil Alan",
+        "product_name": "Məhsulun Adı",
+        "tare_weight": "Boş Çəki (Tara)",
+        "concrete_weight": "Betonun Net Çəkisi",
+        "gross_weight": "Brutto Çəki"
+    },
+    "ru": {
+        "title": "Бетонный Завод SCADA",
+        "home": "Главная",
+        "orders": "Заказы и Отгрузки",
+        "recipes": "Рецепты",
+        "stock": "Склад и Сырье",
+        "reports": "Отчеты и Аналитика",
+        "scada": "SCADA Пульт",
+        "settings": "Настройки",
+        "directories": "Справочники",
+        "drivers": "Водители",
+        "vehicles": "Миксеры (Авто)",
+        "clients": "Клиенты",
+        "suppliers": "Поставщики",
+        "operators": "Операторы",
+        "company": "Данные Предприятия",
+        "lang_name": "Русский",
+        "delete": "Удалить",
+        "edit": "Править",
+        "add": "Добавить",
+        "save": "Сохранить",
+        "back": "Назад",
+        "waybill": "Товарно-Транспортная Накладная",
+        "export_csv": "Экспорт CSV",
+        "confirm_order": "Подтвердить и Списать со Склада",
+        "client": "Клиент",
+        "mixer": "Миксер",
+        "recipe": "Рецепт",
+        "volume": "Объем (м³)",
+        "price_m3": "Цена за 1 м³",
+        "operator": "Оператор",
+        "id": "ID",
+        "date": "Дата",
+        "action": "Действие",
+        "material": "Материал",
+        "current_stock": "Текущий Остаток",
+        "max_capacity": "Макс Емкость",
+        "added_by": "Кто добавил",
+        "supplier": "Поставщик",
+        "vehicle": "Машина",
+        "quantity_kg": "Количество (кг)",
+        "last_update": "Последнее обновление",
+        "stock_report": "Отчет по складу",
+        "concrete_report": "Отчет по бетону",
+        "client_report": "Отчет по клиентам",
+        "vehicle_report": "Отчет по машинам",
+        "print": "Печать",
+        "total_price": "Общая Сумма",
+        "insufficient_stock": "Ошибка: Недостаточно сырья на складе!",
+        "delivered_by": "Сдал (Оператор)",
+        "received_by": "Принял (Заказчик)",
+        "product_name": "Наименование Продукции",
+        "tare_weight": "Масса пустого авто (Тара)",
+        "concrete_weight": "Чистая масса бетона (Нетто)",
+        "gross_weight": "Общая масса (Брутто)"
+    }
 }
 
 def get_lang():
@@ -113,6 +210,20 @@ def get_labels():
     except:
         pass
     return defaults
+
+def generate_qr_base64(data):
+    """Генерация QR-кода в base64 PNG формате"""
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Сохраняем в буфер как PNG
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+    
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def render_html(content, t, lang):
     return f'''<!DOCTYPE html>
@@ -144,7 +255,7 @@ def render_html(content, t, lang):
 <body>
     <nav class="navbar navbar-dark bg-dark mb-4 d-print-none">
         <div class="container-fluid">
-            <a class="navbar-brand text-warning fw-bold" href="/">️ Beton Zavod</a>
+            <a class="navbar-brand text-warning fw-bold" href="/">🏗️ Beton Zavod</a>
             <div class="d-flex">
                 <a href="/orders" class="btn btn-sm btn-outline-light me-2">{t['orders']}</a>
                 <a href="/recipes" class="btn btn-sm btn-outline-light me-2">{t['recipes']}</a>
@@ -170,7 +281,7 @@ def index():
     t = TRANSLATIONS[lang]
     content = f'''
     <div class="p-5 mb-4 rounded-3 card border-warning shadow">
-        <h1 class="display-5 fw-bold text-warning">🏗️ Beton Zavod SCADA</h1>
+        <h1 class="display-5 fw-bold text-warning">️ Beton Zavod SCADA</h1>
         <p class="fs-5 text-secondary">Система управления бетонным заводом</p>
         <hr class="border-secondary">
         <a href="/orders" class="btn btn-warning btn-lg me-2">{t['orders']}</a>
@@ -208,14 +319,18 @@ def orders():
                     for code, needed in req.items():
                         stock = conn.execute("SELECT current_kg FROM stock WHERE code_name=?", (code,)).fetchone()
                         if stock and stock[0] < needed:
-                            flash(f"Недостаточно {code}: нужно {needed:.1f} кг, есть {stock[0]:.1f} кг", "error")
+                            flash(f"{t['insufficient_stock']}: {code} - нужно {needed:.1f} кг, есть {stock[0]:.1f} кг", "error")
                             return redirect('/orders')
                     
                     # Списание и запись движений
+                    operator = conn.execute("SELECT name FROM operators WHERE id=?", (operator_id,)).fetchone()
+                    op_name = operator[0] if operator else 'Unknown'
+                    
                     for code, needed in req.items():
-                        conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name=?", (needed, code))
-                        conn.execute("INSERT INTO stock_movements (date, material_code, movement_type, quantity_kg, order_id, description) VALUES (?, ?, ?, ?, ?, ?)",
-                                   (datetime.now().isoformat(), code, 'OUT', needed, None, f"Order production {vol}m³"))
+                        conn.execute("UPDATE stock SET current_kg = current_kg - ?, last_update=? WHERE code_name=?", 
+                                   (needed, datetime.now().isoformat(), code))
+                        conn.execute("INSERT INTO stock_movements (date, material_code, movement_type, quantity_kg, order_id, description, operator_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                   (datetime.now().isoformat(), code, 'OUT', needed, None, f"Order production {vol}m³", op_name))
                 
                 conn.execute("INSERT INTO orders (date, client_id, vehicle_id, recipe_id, volume_m3, price_per_m3, operator_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                            (datetime.now().isoformat(), client_id, vehicle_id, rec_id, vol, price, operator_id, 'Done'))
@@ -255,14 +370,14 @@ def orders():
                 <div class="col-md-3"><label>{t['mixer']}</label><select name="vehicle_id" class="form-select">{''.join([f'<option value="{v[0]}">{v[1]}</option>' for v in vehicles])}</select></div>
                 <div class="col-md-2"><label>{t['recipe']}</label><select name="recipe_id" class="form-select">{''.join([f'<option value="{r[0]}">{r[1]}</option>' for r in recipes])}</select></div>
                 <div class="col-md-2"><label>{t['volume']}</label><input type="number" name="volume_m3" class="form-control" value="10" step="0.5" required></div>
-                <div class="col-md-2"><label>Цена за м³</label><input type="number" name="price" class="form-control" value="110" step="1" required></div>
+                <div class="col-md-2"><label>{t['price_m3']}</label><input type="number" name="price" class="form-control" value="110" step="1" required></div>
                 <div class="col-md-12"><button type="submit" class="btn btn-warning w-100 fw-bold">{t['confirm_order']}</button></div>
             </div>
         </form>
     </div>
     <div class="card p-4">
         <table class="table table-striped">
-            <thead class="table-dark"><tr><th>ID</th><th>Дата</th><th>Клиент</th><th>Машина</th><th>Рецепт</th><th>Объем</th><th>Сумма</th><th>Действие</th></tr></thead>
+            <thead class="table-dark"><tr><th>ID</th><th>{t['date']}</th><th>{t['client']}</th><th>{t['mixer']}</th><th>{t['recipe']}</th><th>{t['volume']}</th><th>{t['total_price']}</th><th>{t['action']}</th></tr></thead>
             <tbody>{rows if rows else "<tr><td colspan='8' class='text-center'>Нет заказов</td></tr>"}</tbody>
         </table>
     </div>'''
@@ -300,22 +415,18 @@ def waybill(id):
     
     # Генерация QR-кода
     qr_data = f"Waybill #{o[0]}|Date:{o[1]}|Client:{o[2]}|Volume:{vol}m³|Weight:{gross:.0f}kg"
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(qr_data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    qr_base64 = base64.b64encode(img.tobytes()).decode('utf-8')
+    qr_base64 = generate_qr_base64(qr_data)
     
     html = f"""
     <!DOCTYPE html>
     <html lang="{lang}">
     <head>
         <meta charset="UTF-8">
-        <title>Накладная #{o[0]}</title>
+        <title>{t['waybill']} #{o[0]}</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
             body {{ background: #e9ecef; font-family: 'Times New Roman', serif; }}
-            .a4-page {{ background: #fff; width: 210mm; min-height: 297mm; padding: 15mm; margin: 20px auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
+            .a4-page {{ background: #fff; width: 210mm; min-height: 297mm; padding: 15mm; margin: 20px auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }}
             .header {{ text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }}
             .header h2 {{ margin: 0; font-size: 18pt; font-weight: bold; text-transform: uppercase; }}
             .header p {{ margin: 2px 0; font-size: 10pt; }}
@@ -339,10 +450,10 @@ def waybill(id):
     </head>
     <body>
         <div class="no-print">
-            <button class="btn btn-primary btn-lg" onclick="window.print()">️ Печать</button>
-            <a href="/orders" class="btn btn-secondary btn-lg">Назад</a>
+            <button class="btn btn-primary btn-lg" onclick="window.print()">🖨️ {t['print']}</button>
+            <a href="/orders" class="btn btn-secondary btn-lg">{t['back']}</a>
         </div>
-        <div class="a4-page" style="position: relative;">
+        <div class="a4-page">
             <div class="qr-code">
                 <img src="data:image/png;base64,{qr_base64}" alt="QR Code" style="width: 100px; height: 100px;">
             </div>
@@ -351,25 +462,25 @@ def waybill(id):
                 <p>{comp[2] if comp else ''} | Tel: {comp[3] if comp else ''} | ИНН: {comp[4] if comp else ''}</p>
             </div>
             
-            <div class="doc-title">ТОВАРНО-ТРАНСПОРТНАЯ НАКЛАДНАЯ № {o[0]}</div>
+            <div class="doc-title">{t['waybill'].upper()} № {o[0]}</div>
             
             <div class="info-grid">
-                <div><span class="info-label">Дата:</span> {o[1][:16] if o[1] else ''}</div>
-                <div><span class="info-label">Машина:</span> {o[4] or ''}</div>
-                <div><span class="info-label">Клиент:</span> {o[2] or ''}</div>
-                <div><span class="info-label">Водитель:</span> {o[6] or ''}</div>
+                <div><span class="info-label">{t['date']}:</span> {o[1][:16] if o[1] else ''}</div>
+                <div><span class="info-label">{t['mixer']}:</span> {o[4] or ''}</div>
+                <div><span class="info-label">{t['client']}:</span> {o[2] or ''}</div>
+                <div><span class="info-label">{t['drivers']}:</span> {o[6] or ''}</div>
                 <div><span class="info-label">Адрес:</span> {o[3] or ''}</div>
-                <div><span class="info-label">Оператор:</span> {o[9] or ''}</div>
+                <div><span class="info-label">{t['operator']}:</span> {o[9] or ''}</div>
             </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Наименование</th>
-                        <th>Объем (м³)</th>
-                        <th>Тара (кг)</th>
-                        <th>Нетто (кг)</th>
-                        <th>Брутто (кг)</th>
+                        <th>{t['product_name']}</th>
+                        <th>{t['volume']}</th>
+                        <th>{t['tare_weight']}</th>
+                        <th>{t['concrete_weight']}</th>
+                        <th>{t['gross_weight']}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -385,11 +496,11 @@ def waybill(id):
 
             <div class="signatures">
                 <div class="sig-block">
-                    <div>Сдал (Оператор):</div>
+                    <div>{t['delivered_by']}:</div>
                     <div class="sig-line">{o[9] or ''}</div>
                 </div>
                 <div class="sig-block">
-                    <div>Принял (Заказчик):</div>
+                    <div>{t['received_by']}:</div>
                     <div class="sig-line">{o[2] or ''}</div>
                 </div>
             </div>
@@ -399,7 +510,7 @@ def waybill(id):
     """
     return html
 
-# ==================== РЕЦЕПТЫ ====================
+# ==================== РЕЦЕПТЫ (С НАЗВАНИЯМИ МАТЕРИАЛОВ) ====================
 @app.route('/recipes', methods=['GET', 'POST'])
 def recipes():
     lang = get_lang()
@@ -464,7 +575,7 @@ def recipes():
             <table class="table table-striped text-center">
                 <thead class="table-dark">
                     <tr><th>ID</th><th>Марка</th><th>{labels['bunker_1']}</th><th>{labels['bunker_2']}</th><th>{labels['bunker_3']}</th><th>{labels['bunker_4']}</th>
-                    <th>{labels['silo_1']}</th><th>{labels['silo_2']}</th><th>{labels['silo_3']}</th><th>{labels['silo_4']}</th><th>{labels['water']}</th><th>{labels['additive']}</th><th class="text-warning">Всего (кг)</th><th>Действие</th></tr>
+                    <th>{labels['silo_1']}</th><th>{labels['silo_2']}</th><th>{labels['silo_3']}</th><th>{labels['silo_4']}</th><th>{labels['water']}</th><th>{labels['additive']}</th><th class="text-warning">Всего (кг)</th><th>{t['action']}</th></tr>
                 </thead>
                 <tbody>{rows if rows else "<tr><td colspan='14' class='text-center'>Нет рецептов</td></tr>"}</tbody>
             </table>
@@ -479,7 +590,7 @@ def delete_recipe(id):
         conn.commit()
     return redirect('/recipes')
 
-# ==================== СКЛАД (ПОЛНЫЙ CRUD) ====================
+# ==================== СКЛАД (С ИСТОРИЕЙ: КТО, ПОСТАВЩИК, МАШИНА, КГ) ====================
 @app.route('/stock', methods=['GET', 'POST'])
 def stock():
     lang = get_lang()
@@ -491,13 +602,23 @@ def stock():
             action = request.form.get('action')
             try:
                 if action == 'add':
-                    conn.execute("INSERT INTO stock (material_type, code_name, current_kg, max_capacity_kg) VALUES (?, ?, ?, ?)",
+                    conn.execute("INSERT INTO stock (material_type, code_name, current_kg, max_capacity_kg, added_by, supplier_id, vehicle_id, last_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                (request.form['material_type'], request.form['code_name'], 
-                                float(request.form['current_kg']), float(request.form['max_capacity_kg'])))
+                                float(request.form['current_kg']), float(request.form['max_capacity_kg']),
+                                request.form.get('added_by', 'Admin'), 
+                                int(request.form['supplier_id']) if request.form.get('supplier_id') else None,
+                                int(request.form['vehicle_id']) if request.form.get('vehicle_id') else None,
+                                datetime.now().isoformat()))
+                    
+                    # Запись движения
+                    conn.execute("INSERT INTO stock_movements (date, material_code, movement_type, quantity_kg, order_id, description, operator_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                               (datetime.now().isoformat(), request.form['code_name'], 'IN', 
+                                float(request.form['current_kg']), None, 'Initial stock', request.form.get('added_by', 'Admin')))
                     flash("Материал добавлен!", "success")
                 elif action == 'update':
-                    conn.execute("UPDATE stock SET current_kg=?, max_capacity_kg=? WHERE id=?",
-                               (float(request.form['current_kg']), float(request.form['max_capacity_kg']), request.form['stock_id']))
+                    conn.execute("UPDATE stock SET current_kg=?, max_capacity_kg=?, last_update=? WHERE id=?",
+                               (float(request.form['current_kg']), float(request.form['max_capacity_kg']), 
+                                datetime.now().isoformat(), request.form['stock_id']))
                     flash("Обновлено!", "success")
                 elif action == 'delete':
                     conn.execute("DELETE FROM stock WHERE id=?", (request.form['stock_id'],))
@@ -508,14 +629,29 @@ def stock():
             return redirect('/stock')
         
         stock_list = conn.execute("SELECT * FROM stock").fetchall()
+        suppliers = conn.execute("SELECT id, name FROM suppliers").fetchall()
+        vehicles = conn.execute("SELECT id, plate_number FROM vehicles").fetchall()
     
     rows = ""
     for s in stock_list:
         pct = min(100, max(0, int((s[3] / s[4]) * 100))) if s[4] > 0 else 0
         color = "bg-success" if pct > 30 else "bg-warning" if pct > 15 else "bg-danger"
+        
+        # Получаем названия поставщика и машины
+        supplier_name = ""
+        vehicle_name = ""
+        if s[6]:  # supplier_id
+            sup = conn.execute("SELECT name FROM suppliers WHERE id=?", (s[6],)).fetchone()
+            supplier_name = sup[0] if sup else ""
+        if s[7]:  # vehicle_id
+            veh = conn.execute("SELECT plate_number FROM vehicles WHERE id=?", (s[7],)).fetchone()
+            vehicle_name = veh[0] if veh else ""
+        
         rows += f"""<tr>
             <td>{s[0]}</td><td><span class='badge bg-secondary'>{s[1]}</span></td><td><b>{labels.get(s[2], s[2])}</b></td>
             <td class='text-warning fw-bold'>{s[3]:,.1f} кг</td><td>{s[4]:,.1f} кг</td>
+            <td>{s[5] or ''}</td><td>{supplier_name}</td><td>{vehicle_name}</td>
+            <td>{s[8][:16] if s[8] else ''}</td>
             <td><div class='progress bg-dark' style='height: 20px;'><div class='progress-bar {color}' style='width: {pct}%;'>{pct}%</div></div></td>
             <td>
                 <form method='POST' class='d-inline-flex gap-1'>
@@ -533,6 +669,9 @@ def stock():
             </td>
         </tr>"""
     
+    supplier_opts = "".join([f"<option value='{s[0]}'>{s[1]}</option>" for s in suppliers])
+    vehicle_opts = "".join([f"<option value='{v[0]}'>{v[1]}</option>" for v in vehicles])
+    
     content = f'''
     <h2 class="text-warning mb-4">{t['stock']}</h2>
     <div class="card p-4 mb-4 border-warning">
@@ -540,13 +679,16 @@ def stock():
         <form method="POST">
             <input type="hidden" name="action" value="add">
             <div class="row g-3">
-                <div class="col-md-3"><label>Тип материала</label><select name="material_type" class="form-select">
+                <div class="col-md-2"><label>Тип материала</label><select name="material_type" class="form-select">
                     <option value="AGGREGATE">Инертные</option><option value="CEMENT">Цемент</option>
                     <option value="WATER">Вода</option><option value="ADDITIVE">Добавка</option>
                 </select></div>
-                <div class="col-md-3"><label>Код (bunker_1, silo_1, water, additive)</label><input type="text" name="code_name" class="form-control" required></div>
-                <div class="col-md-3"><label>Текущий остаток (кг)</label><input type="number" name="current_kg" class="form-control" value="0" required></div>
-                <div class="col-md-3"><label>Макс. вместимость (кг)</label><input type="number" name="max_capacity_kg" class="form-control" value="100000" required></div>
+                <div class="col-md-2"><label>Код (bunker_1, silo_1, water, additive)</label><input type="text" name="code_name" class="form-control" required></div>
+                <div class="col-md-2"><label>{t['quantity_kg']}</label><input type="number" name="current_kg" class="form-control" value="0" required></div>
+                <div class="col-md-2"><label>{t['max_capacity']}</label><input type="number" name="max_capacity_kg" class="form-control" value="100000" required></div>
+                <div class="col-md-2"><label>{t['added_by']}</label><input type="text" name="added_by" class="form-control" value="Admin" required></div>
+                <div class="col-md-2"><label>{t['supplier']}</label><select name="supplier_id" class="form-select"><option value="">--</option>{supplier_opts}</select></div>
+                <div class="col-md-2"><label>{t['vehicle']}</label><select name="vehicle_id" class="form-select"><option value="">--</option>{vehicle_opts}</select></div>
                 <div class="col-md-12"><button type="submit" class="btn btn-warning w-100 fw-bold">➕ Добавить</button></div>
             </div>
         </form>
@@ -554,14 +696,14 @@ def stock():
     <div class="card p-4">
         <div class="table-responsive">
             <table class="table table-striped">
-                <thead class="table-dark"><tr><th>ID</th><th>Тип</th><th>Название</th><th>Остаток</th><th>Макс.</th><th>Заполненность</th><th>Действия</th></tr></thead>
-                <tbody>{rows if rows else "<tr><td colspan='7' class='text-center'>Нет материалов</td></tr>"}</tbody>
+                <thead class="table-dark"><tr><th>ID</th><th>Тип</th><th>Название</th><th>{t['current_stock']}</th><th>{t['max_capacity']}</th><th>{t['added_by']}</th><th>{t['supplier']}</th><th>{t['vehicle']}</th><th>{t['last_update']}</th><th>%</th><th>{t['action']}</th></tr></thead>
+                <tbody>{rows if rows else "<tr><td colspan='11' class='text-center'>Нет материалов</td></tr>"}</tbody>
             </table>
         </div>
     </div>'''
     return render_html(content, t, lang)
 
-# ==================== ОТЧЕТЫ (ОТДЕЛЬНЫЕ СТРАНИЦЫ) ====================
+# ==================== ОТЧЕТЫ ====================
 @app.route('/reports')
 def reports():
     lang = get_lang()
@@ -572,21 +714,21 @@ def reports():
         <div class="col-md-6">
             <div class="card p-4 border-warning h-100">
                 <h4 class="text-warning">📊 Общий отчет</h4>
-                <p>Сводная информация по всем заказам, объемам и выручке</p>
+                <p>Сводная информация по всем заказам</p>
                 <a href="/reports/summary" class="btn btn-warning w-100">Открыть</a>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card p-4 border-info h-100">
                 <h4 class="text-info">🪨 {t['stock_report']}</h4>
-                <p>Приход, расход и остатки по всем материалам</p>
+                <p>Приход, расход и остатки</p>
                 <a href="/reports/stock" class="btn btn-info w-100 text-white">Открыть</a>
             </div>
         </div>
         <div class="col-md-6">
             <div class="card p-4 border-success h-100">
                 <h4 class="text-success">🏗️ {t['concrete_report']}</h4>
-                <p>Производство по маркам бетона</p>
+                <p>Производство по маркам</p>
                 <a href="/reports/concrete" class="btn btn-success w-100">Открыть</a>
             </div>
         </div>
@@ -599,8 +741,8 @@ def reports():
         </div>
         <div class="col-md-6">
             <div class="card p-4 border-danger h-100">
-                <h4 class="text-danger"> {t['vehicle_report']}</h4>
-                <p>Заказы по машинам и водителям</p>
+                <h4 class="text-danger">🚛 {t['vehicle_report']}</h4>
+                <p>Заказы по машинам</p>
                 <a href="/reports/vehicles" class="btn btn-danger w-100">Открыть</a>
             </div>
         </div>
@@ -627,7 +769,7 @@ def report_summary():
     </div>
     <div class="card p-4">
         <table class="table table-striped">
-            <thead class="table-dark"><tr><th>ID</th><th>Дата</th><th>Объем</th><th>Сумма</th></tr></thead>
+            <thead class="table-dark"><tr><th>ID</th><th>{t['date']}</th><th>{t['volume']}</th><th>{t['total_price']}</th></tr></thead>
             <tbody>{rows if rows else "<tr><td colspan='4' class='text-center'>Нет данных</td></tr>"}</tbody>
         </table>
     </div>'''
@@ -643,10 +785,10 @@ def report_stock():
         movements = conn.execute("SELECT * FROM stock_movements ORDER BY date DESC").fetchall()
     
     stock_rows = "".join([f"<tr><td>{labels.get(s[2], s[2])}</td><td>{s[3]:,.1f} кг</td><td>{s[4]:,.1f} кг</td></tr>" for s in stock_list])
-    mov_rows = "".join([f"<tr><td>{m[1][:16] if m[1] else ''}</td><td>{labels.get(m[2], m[2])}</td><td class='{'text-danger' if m[3]=='OUT' else 'text-success'}'>{m[3]}</td><td>{m[4]:,.1f} кг</td></tr>" for m in movements])
+    mov_rows = "".join([f"<tr><td>{m[1][:16] if m[1] else ''}</td><td>{labels.get(m[2], m[2])}</td><td class='{'text-danger' if m[3]=='OUT' else 'text-success'}'>{m[3]}</td><td>{m[4]:,.1f} кг</td><td>{m[7] or ''}</td></tr>" for m in movements])
     
     content = f'''
-    <h2 class="text-warning mb-4">🪨 Отчет по складу</h2>
+    <h2 class="text-warning mb-4">🪨 {t['stock_report']}</h2>
     <div class="card p-4 mb-4">
         <h5 class="text-info mb-3">Текущие остатки</h5>
         <table class="table table-striped">
@@ -657,8 +799,8 @@ def report_stock():
     <div class="card p-4">
         <h5 class="text-warning mb-3">Движения (приход/уход)</h5>
         <table class="table table-striped">
-            <thead class="table-dark"><tr><th>Дата</th><th>Материал</th><th>Тип</th><th>Количество</th></tr></thead>
-            <tbody>{mov_rows if mov_rows else "<tr><td colspan='4' class='text-center'>Нет движений</td></tr>"}</tbody>
+            <thead class="table-dark"><tr><th>{t['date']}</th><th>Материал</th><th>Тип</th><th>{t['quantity_kg']}</th><th>Оператор</th></tr></thead>
+            <tbody>{mov_rows if mov_rows else "<tr><td colspan='5' class='text-center'>Нет движений</td></tr>"}</tbody>
         </table>
     </div>'''
     return render_html(content, t, lang)
@@ -678,7 +820,7 @@ def report_concrete():
     rows = "".join([f"<tr><td>{d[0] or 'Неизвестно'}</td><td>{d[1]}</td><td>{d[2]:.1f} m³</td><td class='text-warning fw-bold'>{d[3]:.2f} AZN</td></tr>" for d in data])
     
     content = f'''
-    <h2 class="text-warning mb-4">🏗️ Отчет по бетону (марки)</h2>
+    <h2 class="text-warning mb-4">🏗️ {t['concrete_report']}</h2>
     <div class="card p-4">
         <table class="table table-striped">
             <thead class="table-dark"><tr><th>Марка бетона</th><th>Кол-во заказов</th><th>Объем</th><th>Сумма</th></tr></thead>
@@ -702,7 +844,7 @@ def report_clients():
     rows = "".join([f"<tr><td>{d[0] or 'Неизвестно'}</td><td>{d[1]}</td><td>{d[2]:.1f} m³</td><td class='text-warning fw-bold'>{d[3]:.2f} AZN</td></tr>" for d in data])
     
     content = f'''
-    <h2 class="text-warning mb-4">👥 Отчет по клиентам</h2>
+    <h2 class="text-warning mb-4">👥 {t['client_report']}</h2>
     <div class="card p-4">
         <table class="table table-striped">
             <thead class="table-dark"><tr><th>Клиент</th><th>Заказов</th><th>Объем</th><th>Сумма</th></tr></thead>
@@ -727,7 +869,7 @@ def report_vehicles():
     rows = "".join([f"<tr><td>{d[0] or 'Неизвестно'}</td><td>{d[1] or ''}</td><td>{d[2]}</td><td>{d[3]:.1f} m³</td></tr>" for d in data])
     
     content = f'''
-    <h2 class="text-warning mb-4">🚛 Отчет по машинам</h2>
+    <h2 class="text-warning mb-4"> {t['vehicle_report']}</h2>
     <div class="card p-4">
         <table class="table table-striped">
             <thead class="table-dark"><tr><th>Машина</th><th>Водитель</th><th>Рейсов</th><th>Объем</th></tr></thead>
@@ -753,7 +895,7 @@ def scada():
     </div>'''
     return render_html(content, t, lang)
 
-# ==================== СПРАВОЧНИКИ (CRUD) ====================
+# ==================== СПРАВОЧНИКИ ====================
 def render_crud(table_name, display_name, fields, t):
     lang = get_lang()
     with sqlite3.connect(DB) as conn:
@@ -802,12 +944,12 @@ def render_crud(table_name, display_name, fields, t):
         <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['save']}</button></form>
     </div>
     <div class="card p-4"><table class="table table-striped"><thead class="table-dark"><tr><th>ID</th>
-    {"".join([f"<th>{label}</th>" for label in fields.values()])}<th>Действие</th></tr></thead><tbody>{rows_html if rows_html else "<tr><td colspan='" + str(len(fields) + 2) + "' class='text-center'>Нет данных</td></tr>"}</tbody></table></div>'''
+    {"".join([f"<th>{label}</th>" for label in fields.values()])}<th>{t['action']}</th></tr></thead><tbody>{rows_html if rows_html else "<tr><td colspan='" + str(len(fields) + 2) + "' class='text-center'>Нет данных</td></tr>"}</tbody></table></div>'''
     return render_html(content, t, lang)
 
 @app.route('/operators', methods=['GET', 'POST'])
 def operators(): 
-    return render_crud('operators', 'Операторы', {'name': 'Имя', 'phone': 'Телефон'}, TRANSLATIONS[get_lang()])
+    return render_crud('operators', t['operators'] if (t := TRANSLATIONS.get(get_lang())) else 'Операторы', {'name': 'Имя', 'phone': 'Телефон'}, TRANSLATIONS[get_lang()])
 
 @app.route('/drivers', methods=['GET', 'POST'])
 def drivers(): 
