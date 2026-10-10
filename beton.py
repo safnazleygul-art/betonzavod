@@ -10,18 +10,42 @@ app = Flask(__name__)
 app.secret_key = "beton_zavod_ultimate_secret_key"
 DB = "batch_dosing.db"
 
+# Единоформатные переводы (на русском языке для единого стандарта интерфейса)
 TRANSLATIONS = {
+    "ru": {
+        "title": "SmartBeton SCADA & MES",
+        "dashboard": "Панель управления",
+        "orders": "Заказы и накладные",
+        "recipes": "Рецепты бетона",
+        "stock": "Склад и сырье",
+        "reports": "Отчеты и аналитика",
+        "scada": "SCADA пульт",
+        "settings": "Настройки завода",
+        "modbus": "Карта Modbus",
+        "modbus_control": "Тест-пульт Modbus",
+        "directories": "Справочники",
+        "drivers": "Водители",
+        "vehicles": "Миксеры / Авто",
+        "clients": "Клиенты",
+        "suppliers": "Поставщики",
+        "operators": "Операторы",
+        "company": "Предприятие",
+        "lang_name": "Русский",
+        "delete": "Удалить", "edit": "Править", "add": "Добавить", "save": "Сохранить",
+        "back": "Назад", "sub_title": "Система промышленной автоматизации и управления бетонным заводом",
+        "action": "Действие", "id": "ID", "date": "Дата"
+    },
     "az": {
         "title": "SmartBeton SCADA & MES",
         "dashboard": "İdarəetmə Paneli",
-        "orders": "Sifarişlər & Qaimələr",
+        "orders": "Sifarişlər və Qaimələr",
         "recipes": "Reseptlər",
-        "stock": "Anbar & Xammal",
-        "reports": "Analitika & Hesabatlar",
+        "stock": "Anbar və Xammal",
+        "reports": "Hesabatlar və Analitika",
         "scada": "SCADA Pult",
         "settings": "Zavod Parametrləri",
         "modbus": "Modbus Xritələmə",
-        "modbus_control": "⚡ Modbus Test Pultu",
+        "modbus_control": "Modbus Test Pultu",
         "directories": "Kataloqlar",
         "drivers": "Sürücülər",
         "vehicles": "Mikserlər",
@@ -37,14 +61,14 @@ TRANSLATIONS = {
     "tr": {
         "title": "SmartBeton SCADA & MES",
         "dashboard": "Kontrol Paneli",
-        "orders": "Siparişler & İrsaliyeler",
+        "orders": "Siparişler ve İrsaliyeler",
         "recipes": "Reçeteler",
-        "stock": "Stok & Hammadde",
-        "reports": "Analitik & Raporlar",
+        "stock": "Stok ve Hammadde",
+        "reports": "Raporlar ve Analitik",
         "scada": "SCADA Kontrol",
         "settings": "Santral Ayarları",
         "modbus": "Modbus Haritalama",
-        "modbus_control": "⚡ Modbus Test Paneli",
+        "modbus_control": "Modbus Test Paneli",
         "directories": "Tanımlamalar",
         "drivers": "Şoförler",
         "vehicles": "Mikseller",
@@ -56,29 +80,6 @@ TRANSLATIONS = {
         "delete": "Sil", "edit": "Düzenle", "add": "Ekle", "save": "Kaydet",
         "back": "Geri Dön", "sub_title": "Endüstriyel Otomasyon ve Beton Üretim Yönetim Sistemi",
         "action": "İşlem", "id": "ID", "date": "Tarih"
-    },
-    "ru": {
-        "title": "SmartBeton SCADA & MES",
-        "dashboard": "Панель управления",
-        "orders": "Заказы и Накладные",
-        "recipes": "Рецепты",
-        "stock": "Склад и Сырье",
-        "reports": "Аналитика и Отчеты",
-        "scada": "SCADA Пульт",
-        "settings": "Настройки завода",
-        "modbus": "Modbus Карты",
-        "modbus_control": "⚡ Тест-пульт Modbus",
-        "directories": "Справочники",
-        "drivers": "Водители",
-        "vehicles": "Миксеры",
-        "clients": "Клиенты",
-        "suppliers": "Поставщики",
-        "operators": "Операторы",
-        "company": "Предприятие",
-        "lang_name": "Русский",
-        "delete": "Удалить", "edit": "Править", "add": "Добавить", "save": "Сохранить",
-        "back": "Назад", "sub_title": "Промышленная автоматизация и система управления бетонным заводом",
-        "action": "Действие", "id": "ID", "date": "Дата"
     }
 }
 
@@ -178,8 +179,7 @@ def init_db():
                                     data_type, addr_type, addr = 0, 0, 0
                                 
                                 tag_upper = tag.upper()
-                                # Умное распознавание битовых команд миксера, лент и затворов
-                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU']
+                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU', 'MIKSER']
                                 if addr_type == 1 or (any(kw in tag_upper for kw in bit_keywords) and data_type == 0 and addr_type == 0):
                                     dtype = "BIT"
                                 elif data_type == 2 or addr_type == 4:
@@ -199,7 +199,7 @@ def init_db():
 init_db()
 
 def get_lang():
-    if 'lang' not in session: session['lang'] = 'az'
+    if 'lang' not in session: session['lang'] = 'ru'
     return session['lang']
 
 @app.route('/set_lang/<lang_code>')
@@ -233,7 +233,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link px-2 rounded text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded text-danger fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
-                <li class="nav-item"><a class="nav-link px-2 rounded text-success fw-bold" href="/modbus/control">{t['modbus_control']}</a></li>
+                <li class="nav-item"><a class="nav-link px-2 rounded text-success fw-bold" href="/modbus/control">⚡ {t['modbus_control']}</a></li>
                 <li class="nav-item dropdown ms-xl-2">
                   <a class="nav-link dropdown-toggle px-2 rounded text-light fw-semibold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
                   <ul class="dropdown-menu dropdown-menu-dark shadow border-secondary">
@@ -252,9 +252,9 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                     🌐 {t['lang_name']}
                   </a>
                   <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-secondary">
-                    <li><a class="dropdown-item" href="/set_lang/az">🇦🇿 Azərbaycan dili</a></li>
-                    <li><a class="dropdown-item" href="/set_lang/tr">🇹🇷 Türkçe</a></li>
                     <li><a class="dropdown-item" href="/set_lang/ru">🇷🇺 Русский</a></li>
+                    <li><a class="dropdown-item" href="/set_lang/az">🇦🇿 Azərbaycan</a></li>
+                    <li><a class="dropdown-item" href="/set_lang/tr">🇹🇷 Türkçe</a></li>
                   </ul>
                 </li>
               </ul>
@@ -309,9 +309,9 @@ def index():
             <p class="col-md-9 fs-5 text-secondary">{t['sub_title']}</p>
             <hr class="border-secondary my-4">
             <div class="d-flex flex-wrap gap-3">
-                <a href="/scada" class="btn btn-warning btn-lg fw-bold px-4">🖥️ SCADA Pult & Start</a>
-                <a href="/modbus/control" class="btn btn-success btn-lg fw-bold px-4">{t['modbus_control']}</a>
-                <a href="/reports" class="btn btn-info btn-lg fw-bold px-4">📊 Analitika & Hesabatlar</a>
+                <a href="/scada" class="btn btn-warning btn-lg fw-bold px-4">🖥️ {t['scada']}</a>
+                <a href="/modbus/control" class="btn btn-success btn-lg fw-bold px-4">⚡ {t['modbus_control']}</a>
+                <a href="/reports" class="btn btn-info btn-lg fw-bold px-4">📊 {t['reports']}</a>
             </div>
         </div>
     </div>'''
@@ -358,7 +358,7 @@ def modbus():
                                     data_type, addr_type, addr = 0, 0, 0
                                 
                                 tag_upper = tag.upper()
-                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU']
+                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU', 'MIKSER']
                                 if addr_type == 1 or (any(kw in tag_upper for kw in bit_keywords) and data_type == 0 and addr_type == 0):
                                     dtype = "BIT"
                                 elif data_type == 2 or addr_type == 4:
@@ -394,52 +394,52 @@ def modbus():
             <td>{badge}</td>
             <td class='font-monospace text-warning fw-bold'>{r[3]}</td>
             <td>{r[4]}</td>
-            <td><a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmek istediyinizden əminsiniz?')">🗑️ {t['delete']}</a></td>
+            <td><a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Удалить этот тег?')">🗑️ {t['delete']}</a></td>
         </tr>"""
 
     content = f'''
-    <h2 class="text-warning mb-4">🔌 Modbus TCP Configuration & Register Mapping ({len(registers)} Tags)</h2>
+    <h2 class="text-warning mb-4">🔌 Конфигурация Modbus TCP и Карта Регистров ({len(registers)} Тегов)</h2>
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card p-4 shadow mb-3 border-info">
-                <h4 class="text-info mb-3">🌐 Connection</h4>
+                <h4 class="text-info mb-3">🌐 Сетевые настройки</h4>
                 <form method="POST">
                     <input type="hidden" name="save_config" value="1">
-                    <div class="mb-2"><label>PLC IP Address</label><input type="text" name="plc_ip" class="form-control" value="{cfg[0]}" required></div>
-                    <div class="mb-2"><label>Modbus Port</label><input type="number" name="plc_port" class="form-control" value="{cfg[1]}" required></div>
-                    <div class="mb-3"><label>Slave / Unit ID</label><input type="number" name="slave_id" class="form-control" value="{cfg[2]}" required></div>
+                    <div class="mb-2"><label>IP-адрес ПЛК</label><input type="text" name="plc_ip" class="form-control" value="{cfg[0]}" required></div>
+                    <div class="mb-2"><label>Порт Modbus</label><input type="number" name="plc_port" class="form-control" value="{cfg[1]}" required></div>
+                    <div class="mb-3"><label>ID Устройства (Slave)</label><input type="number" name="slave_id" class="form-control" value="{cfg[2]}" required></div>
                     <button type="submit" class="btn btn-info w-100 fw-bold">{t['save']}</button>
                 </form>
             </div>
             <div class="card p-4 shadow border-success mb-3">
-                <h4 class="text-success mb-3">📁 Импорт CSV Тегов</h4>
+                <h4 class="text-success mb-3">📁 Импорт тегов из CSV</h4>
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <input type="file" name="upload_csv" class="form-control" accept=".csv" required>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 fw-bold">📥 Загрузить и Импортировать</button>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">📥 Загрузить и импортировать</button>
                 </form>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card p-4 shadow mb-4 border-warning">
-                <h4 class="text-warning mb-3">➕ Add Tag / Address</h4>
+                <h4 class="text-warning mb-3">➕ Добавить новый тег</h4>
                 <form method="POST">
                     <input type="hidden" name="add_tag" value="1">
                     <div class="row">
-                        <div class="col-md-6 mb-2"><label>Tag Name</label><input type="text" name="tag_name" class="form-control" placeholder="e.g. Bunker1_Weight" required></div>
-                        <div class="col-md-6 mb-2"><label>Type</label><select name="data_type" class="form-select"><option value="REGISTER (WORD)">REGISTER (WORD)</option><option value="BIT">BIT</option><option value="REAL / DWORD">REAL / DWORD</option></select></div>
-                        <div class="col-md-6 mb-2"><label>Address Offset</label><input type="number" name="address" class="form-control" placeholder="e.g. 40001" required></div>
-                        <div class="col-md-6 mb-2"><label>Description</label><input type="text" name="description" class="form-control" placeholder="Description"></div>
+                        <div class="col-md-6 mb-2"><label>Имя тега (Tag Name)</label><input type="text" name="tag_name" class="form-control" placeholder="например: Bunker1_Weight" required></div>
+                        <div class="col-md-6 mb-2"><label>Тип данных</label><select name="data_type" class="form-select"><option value="REGISTER (WORD)">REGISTER (WORD)</option><option value="BIT">BIT</option><option value="REAL / DWORD">REAL / DWORD</option></select></div>
+                        <div class="col-md-6 mb-2"><label>Адрес / Смещение</label><input type="number" name="address" class="form-control" placeholder="например: 40001" required></div>
+                        <div class="col-md-6 mb-2"><label>Описание</label><input type="text" name="description" class="form-control" placeholder="Описание назначения тега"></div>
                     </div>
                     <button type="submit" class="btn btn-success w-100 fw-bold mt-2">{t['add']}</button>
                 </form>
             </div>
             <div class="card p-4 shadow border-secondary">
-                <h4 class="text-light mb-3">📋 Реестр Modbus Тегов и Типов</h4>
+                <h4 class="text-light mb-3">📋 Реестр Modbus Тегов</h4>
                 <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
                     <table class="table table-dark table-striped align-middle">
-                        <thead><tr><th>{t['id']}</th><th>Tag Name</th><th>Type</th><th>Address</th><th>Description</th><th>{t['action']}</th></tr></thead>
+                        <thead><tr><th>{t['id']}</th><th>Имя тега</th><th>Тип</th><th>Адрес</th><th>Описание</th><th>{t['action']}</th></tr></thead>
                         <tbody>{rows}</tbody>
                     </table>
                 </div>
@@ -528,8 +528,8 @@ def modbus_control():
     content = f'''
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="text-success mb-1">⚡ Modbus TCP Test & Control Panel</h2>
-            <p class="text-secondary mb-0">Управление битами миксера и затворов (Toggle / Reset / Set) и запись значений в регистры.</p>
+            <h2 class="text-success mb-1">⚡ Интерактивный тест-пульт Modbus</h2>
+            <p class="text-secondary mb-0">Управление битами механизмов (Toggle / Set / Reset) и запись значений в регистры в реальном времени.</p>
         </div>
         <a href="/modbus" class="btn btn-outline-light btn-sm">⚙️ Настройка тегов</a>
     </div>
@@ -540,11 +540,11 @@ def modbus_control():
                 <thead>
                     <tr>
                         <th>{t['id']}</th>
-                        <th>Tag Name</th>
-                        <th>Type</th>
-                        <th>Address</th>
-                        <th>Value & Control (Read / Write / Toggle)</th>
-                        <th>Description</th>
+                        <th>Имя тега</th>
+                        <th>Тип</th>
+                        <th>Адрес</th>
+                        <th>Значение и Управление (Read / Write / Toggle)</th>
+                        <th>Описание</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -556,30 +556,31 @@ def modbus_control():
     '''
     return render_page(content, t, lang)
 
+# Единоформатные заглушки навигации
 @app.route('/orders')
-def orders(): return render_page("<h2 class='text-warning'>📦 Sifarişlər Modulu</h2>", TRANSLATIONS[get_lang()], get_lang())
+def orders(): return render_page("<h2 class='text-warning'>📦 Заказы и накладные</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/recipes')
-def recipes(): return render_page("<h2 class='text-warning'>🧪 Reseptlər Modulu</h2>", TRANSLATIONS[get_lang()], get_lang())
+def recipes(): return render_page("<h2 class='text-warning'>🧪 Рецепты бетона</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/stock')
-def stock(): return render_page("<h2 class='text-warning'>📦 Anbar və Xammal</h2>", TRANSLATIONS[get_lang()], get_lang())
+def stock(): return render_page("<h2 class='text-warning'>📦 Склад и сырье</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/reports')
-def reports(): return render_page("<h2 class='text-warning'>📊 Analitika və Hesabatlar</h2>", TRANSLATIONS[get_lang()], get_lang())
+def reports(): return render_page("<h2 class='text-warning'>📊 Отчеты и аналитика</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/scada')
-def scada(): return render_page("<h2 class='text-warning'>🖥️ SCADA Pult İdarəetmə Paneli</h2>", TRANSLATIONS[get_lang()], get_lang())
+def scada(): return render_page("<h2 class='text-warning'>🖥️ SCADA пульт управления</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/settings')
-def settings(): return render_page("<h2 class='text-warning'>⚙️ Zavod Parametrləri</h2>", TRANSLATIONS[get_lang()], get_lang())
+def settings(): return render_page("<h2 class='text-warning'>⚙️ Настройки завода</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/company')
-def company(): return render_page("<h2 class='text-warning'>🏢 Müəssisə Məlumatları</h2>", TRANSLATIONS[get_lang()], get_lang())
+def company(): return render_page("<h2 class='text-warning'>🏢 Данные предприятия</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/operators')
-def operators(): return render_page("<h2 class='text-warning'>👷 Operatorlar Siyahısı</h2>", TRANSLATIONS[get_lang()], get_lang())
+def operators(): return render_page("<h2 class='text-warning'>👷 Список операторов</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/drivers')
-def drivers(): return render_page("<h2 class='text-warning'>🚚 Sürücülər Siyahısı</h2>", TRANSLATIONS[get_lang()], get_lang())
+def drivers(): return render_page("<h2 class='text-warning'>🚚 Список водителей</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/vehicles')
-def vehicles(): return render_page("<h2 class='text-warning'>🚛 Mikserlər və Avtomaşınlar</h2>", TRANSLATIONS[get_lang()], get_lang())
+def vehicles(): return render_page("<h2 class='text-warning'>🚛 Миксеры и автотранспорт</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/clients')
-def clients(): return render_page("<h2 class='text-warning'>🤝 Müştərilər Bazası</h2>", TRANSLATIONS[get_lang()], get_lang())
+def clients(): return render_page("<h2 class='text-warning'>🤝 База клиентов</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/suppliers')
-def suppliers(): return render_page("<h2 class='text-warning'>📦 Təchizatçılar Bazası</h2>", TRANSLATIONS[get_lang()], get_lang())
+def suppliers(): return render_page("<h2 class='text-warning'>📦 База поставщиков</h2>", TRANSLATIONS[get_lang()], get_lang())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
