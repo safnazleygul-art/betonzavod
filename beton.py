@@ -18,24 +18,25 @@ TRANSLATIONS = {
         "orders": "Sifarişlər və Qaimələr",
         "recipes": "Reseptlər",
         "stock": "Anbar və Xammal",
-        "reports": "Hesabatlar və Axtarış",
+        "reports": "Hesabatlar və Analitika",
         "scada": "SCADA Pult",
         "settings": "PLC Tənzimləmələri",
-        "modbus": "Modbus Xritələmə",
+        "modbus": "Modbus Xəritələmə",
         "rw_page": "🎛️ Oxu və Yaz (Read/Write)",
-        "directories": "Sorğular",
+        "directories": "Sorğular və Sorğugah",
         "drivers": "Sürücülər",
-        "vehicles": "Mikserlər",
+        "vehicles": "Mikserlər (Maşınlar)",
         "clients": "Müştərilər",
         "suppliers": "Təchizatçılar",
         "operators": "Operatorlar",
-        "company": "Müəssisə",
+        "company": "Müəssisə Məlumatları",
         "lang_name": "Azərbaycan dili",
         "home_scada": "🖥️ SCADA Pult & Start",
-        "home_reports": "📊 Hesabatlar və Axtarış",
+        "home_reports": "📊 Hesabatlar və Analitika",
         "home_orders": "📦 Sifarişlər",
         "delete": "Sil", "edit": "Redaktə", "add": "Əlavə et", "save": "Yadda saxla",
-        "print_version": "Çap Versiyası", "export_csv": "📥 CSV/Excel İxrac", "back": "Geri qayıt", "nakladnoy": "Nəqliyyat Qaiməsi",
+        "print_version": "Çap Versiyası", "export_csv": "📥 CSV/Excel İxrac", "back": "Geri qayıt",
+        "waybill": "Nəqliyyat Qaiməsi",
         "sub_title": "SCADA və Beton Zavod İdarəetmə Sistemi (Daşınma Uçotu, Anbar, Reseptlər, Modbus)",
         "client": "Müştəri (Alıcı)",
         "mixer": "Mikser (Maşın)",
@@ -48,33 +49,10 @@ TRANSLATIONS = {
         "id": "ID", "date": "Tarix", "document": "Sənəd", "action": "Əməliyyat",
         "start_date": "Başlanğıc tarixi", "end_date": "Bitmə tarixi",
         "material": "Material / Silo / Su",
-        "op_type": "Əməliyyat Növü",
-        "all_materials": "Bütün Materiallar",
-        "all_silos": "🪨 Bütün Silolar (Silo 1-4)",
-        "all_recipes": "Bütün Markalar",
-        "all_ops": "Bütün Əməliyyatlar",
-        "all_clients": "Bütün Müştərilər",
-        "all_drivers": "Bütün Sürücülər",
-        "consumption": "Sərfiyyat",
-        "income": "Gəliş",
-        "search": "🔍 Axtar və Göstər",
-        "total_volume": "Ümumi Həcm",
-        "total_qty": "Ümumi Miqdar",
-        "total_amount": "Ümumi Məbləğ",
-        "driver_rep": "🚚 Sürücülər Üzrə Daşınma Hesabatı",
-        "client_rep": "🏢 Müştərilər Üzrə Beton Paylanması",
-        "trips": "Reys Sayı",
-        "order_count": "Sifariş Sayı",
-        "note": "Qeyd / Qaimə",
-        "supplier": "Təchizatçı (Kimdən gəldi)",
-        "add_stock": "📥 Yeni Xammal Girişi",
-        "save_stock": "💾 Anbara Daxil Et",
         "current_stock": "Cari Qalıq",
         "max_capacity": "Max Tutum",
-        "refill": "➕ Dolu",
         "start_prod": "▶️ İstehsalı Başla (START)",
         "estop": "🛑 QƏZA DAYANMASI (ESTOP)",
-        "phase1": "1. Dozaj", "phase2": "2. Yükləmə", "phase3": "3. Zames & Sliv",
         "ready": "Hazırdır", "waiting": "Gözləyir",
         "phone": "Telefon", "license": "Sürücülük Vəsiqəsi", "address": "Ünvan", "tax_no": "VÖEN",
         "company_name": "Müəssisə Adı",
@@ -82,45 +60,37 @@ TRANSLATIONS = {
         "delivered_by": "Təhvil Verən Operator",
         "received_by": "Təhvil Alan Məhsul Yiyəsi",
         "product_name": "Məhsulun Adı və Markası",
-        "phone_label": "Tel",
-        "address_label": "Ünvan",
-        "driver_label": "Sürücü",
         "tare_weight": "Boş Çəki (Tara)",
-        "concrete_weight": "Betonun Çəkisi",
-        "gross_weight": "Ümumi Dolu Çəki (Brutto)",
-        "mixing_time": "Qarışdırma Müddəti (san)",
-        "gate_open_time": "Qapağın Açılma Vaxtı (san)",
-        "gate_pulse_period": "Qapaq İmpuls Periodu (san)",
-        "discharge_time": "Boşalma Vaxtı (san)",
-        "transporter_stop_delay": "Lent Dayanma Gecikməsi (san)"
+        "concrete_weight": "Betonun Net Çəkisi",
+        "gross_weight": "Ümumi Dolu Çəki (Brutto)"
     },
     "tr": {
         "title": "Beton Santrali SCADA",
         "home": "Ana Sayfa",
-        "orders": "Siparişler ve İrsaliyeler",
+        "orders": "Siparişler ve Sevkler",
         "recipes": "Reçeteler",
         "stock": "Stok ve Hammadde",
-        "reports": "Raporlar ve Arama",
+        "reports": "Raporlar ve Analiz",
         "scada": "SCADA Kontrol",
         "settings": "PLC Ayarları",
         "modbus": "Modbus Haritalama",
         "rw_page": "🎛️ Oku ve Yaz (Read/Write)",
         "directories": "Tanımlamalar",
         "drivers": "Şoförler",
-        "vehicles": "Mikseller",
+        "vehicles": "Mikseller (Araçlar)",
         "clients": "Müşteriler",
         "suppliers": "Tedarikçiler",
         "operators": "Operatörler",
-        "company": "İşletme",
+        "company": "İşletme Bilgileri",
         "lang_name": "Türkçe",
         "home_scada": "🖥️ SCADA Kontrol & Başlat",
-        "home_reports": "📊 Raporlar ve Arama",
+        "home_reports": "📊 Raporlar ve Analiz",
         "home_orders": "📦 Siparişler",
         "delete": "Sil", "edit": "Düzenle", "add": "Ekle", "save": "Kaydet",
         "print_version": "Yazdırılabilir Sayfa",
         "export_csv": "📥 CSV/Excel İhracat",
         "back": "Geri Dön",
-        "nakladnoy": "Sevk İrsaliyesi",
+        "waybill": "Sevk İrsaliyesi",
         "sub_title": "SCADA ve Beton Santral Yönetim Sistemi (Taşıma Takibi, Stok, Reçeteler, Modbus)",
         "client": "Müşteri (Firma)",
         "mixer": "Mikser (Araç)",
@@ -133,83 +103,51 @@ TRANSLATIONS = {
         "id": "ID", "date": "Tarih", "document": "Belge", "action": "İşlem",
         "start_date": "Başlangıç Tarihi", "end_date": "Bitiş Tarihi",
         "material": "Malzeme / Silo / Su",
-        "op_type": "İşlem Tipi",
-        "all_materials": "Tüm Malzemeler",
-        "all_silos": "🪨 Tüm Silolar (Silo 1-4)",
-        "all_recipes": "Tüm Reçeteler",
-        "all_ops": "Tüm İşlemler",
-        "all_clients": "Tüm Müşteriler",
-        "all_drivers": "Tüm Şoförler",
-        "consumption": "Sarfiyat",
-        "income": "Giriş",
-        "search": "🔍 Ara ve Göster",
-        "total_volume": "Toplam Hacim",
-        "total_qty": "Toplam Miktar",
-        "total_amount": "Toplam Tutar",
-        "driver_rep": "🚚 Şoför Bazlı Taşıma Raporu",
-        "client_rep": "🏢 Müşteri Bazlı Beton Dağılımı",
-        "trips": "Sefer Sayısı",
-        "order_count": "Sipariş Sayısı",
-        "note": "Açıklama / İrsaliye",
-        "supplier": "Tedarikçi",
-        "add_stock": "📥 Yeni Hammadde Girişi",
-        "save_stock": "💾 Stoga Ekle",
         "current_stock": "Mevcut Stok",
         "max_capacity": "Maks Kapasite",
-        "refill": "➕ Doldur",
         "start_prod": "▶️ Üretimi Başlat (START)",
         "estop": "🛑 ACİL DURDURMA (ESTOP)",
-        "phase1": "1. Dozaj", "phase2": "2. Yükleme", "phase3": "3. Karıştırma ve Deşarj",
         "ready": "Hazır", "waiting": "Bekliyor",
         "phone": "Telefon", "license": "Ehliyet No", "address": "Adres", "tax_no": "Vergi No",
         "company_name": "Firma Adı",
-        "close": "Kapat",
-        "print": "🖨️ Yazdır",
+        "close": "Kapat", "print": "🖨️ Yazdır",
         "delivered_by": "Teslim Eden Operatör",
         "received_by": "Teslim Alan Müşteri",
         "product_name": "Ürün Adı ve Sınıfı",
-        "phone_label": "Tel",
-        "address_label": "Adres",
-        "driver_label": "Şoför",
         "tare_weight": "Dara (Boş Ağırlık)",
-        "concrete_weight": "Beton Ağırlığı",
-        "gross_weight": "Toplam Yüklü Ağırlık (Brüt)",
-        "mixing_time": "Karıştırma Süresi (sn)",
-        "gate_open_time": "Kapak Açılma Süresi (sn)",
-        "gate_pulse_period": "Kapak Darbe Periyodu (sn)",
-        "discharge_time": "Boşaltma Süresi (sn)",
-        "transporter_stop_delay": "Bant Durma Gecikmesi (sn)"
+        "concrete_weight": "Beton Net Ağırlığı",
+        "gross_weight": "Toplam Yüklü Ağırlık (Brüt)"
     },
     "ru": {
         "title": "Бетонный Завод SCADA",
         "home": "Главная",
-        "orders": "Заказы и Накладные",
+        "orders": "Заказы и Отгрузки",
         "recipes": "Рецепты",
         "stock": "Склад и Сырье",
-        "reports": "Отчеты и Поиск",
+        "reports": "Отчеты и Аналитика",
         "scada": "SCADA Пульт",
         "settings": "Настройки ПЛК",
         "modbus": "Modbus Карты",
         "rw_page": "🎛️ Чтение и Запись (Read/Write)",
         "directories": "Справочники",
         "drivers": "Водители",
-        "vehicles": "Миксеры",
+        "vehicles": "Миксеры (Авто)",
         "clients": "Клиенты",
         "suppliers": "Поставщики",
         "operators": "Операторы",
-        "company": "Предприятие",
+        "company": "Данные Предприятия",
         "lang_name": "Русский",
         "home_scada": "🖥️ SCADA Пульт & Старт",
-        "home_reports": "📊 Отчеты и Поиск",
+        "home_reports": "📊 Отчеты и Аналитика",
         "home_orders": "📦 Заказы",
         "delete": "Удалить", "edit": "Править", "add": "Добавить", "save": "Сохранить",
         "print_version": "Версия для печати",
         "export_csv": "📥 Экспорт в CSV/Excel",
         "back": "Назад",
-        "nakladnoy": "Товарно-Транспортная Накладная",
-        "sub_title": "SCADA и Система Управления Бетонным Заводом (Учет Перевозок Водителей, Склад, Рецепты, Modbus)",
+        "waybill": "Товарно-Транспортная Накладная (ТТН)",
+        "sub_title": "SCADA и Система Управления Бетонным Заводом (Учет Перевозок, Склад, Рецепты, Modbus)",
         "client": "Клиент (Заказчик)",
-        "mixer": "Миксер (Машина)",
+        "mixer": "Миксер (Автобетоносмеситель)",
         "recipe": "Рецепт / Марка Бетона",
         "volume": "Объем (м³)",
         "price_m3": "Цена за 1 м³ (AZN)",
@@ -219,52 +157,20 @@ TRANSLATIONS = {
         "id": "ID", "date": "Дата", "document": "Документ", "action": "Действие",
         "start_date": "Дата начала", "end_date": "Дата окончания",
         "material": "Материал / Силос / Вода",
-        "op_type": "Тип Операции",
-        "all_materials": "Все Материалы",
-        "all_silos": "🪨 Все Силосы (Силос 1-4)",
-        "all_recipes": "Все Марки",
-        "all_ops": "Все Операции",
-        "all_clients": "Все Клиенты",
-        "all_drivers": "Все Водители",
-        "consumption": "Расход",
-        "income": "Приход",
-        "search": "🔍 Найти и Показать",
-        "total_volume": "Общий Объем",
-        "total_qty": "Общее Количество",
-        "total_amount": "Общая Сумма",
-        "driver_rep": "🚚 Отчет Перевозок по Водителям",
-        "client_rep": "🏢 Распределение Бетона по Клиентам",
-        "trips": "Кол-во Рейсов",
-        "order_count": "Кол-во Заказов",
-        "note": "Примечание / Накладная",
-        "supplier": "Поставщик",
-        "add_stock": "📥 Поступление Нового Сырья",
-        "save_stock": "💾 Внести на Склад",
         "current_stock": "Текущий Остаток",
         "max_capacity": "Макс Емкость",
-        "refill": "➕ Заполнить",
         "start_prod": "▶️ Начать Производство (START)",
         "estop": "🛑 АВАРИЙНЫЙ ОСТАНОВ (ESTOP)",
-        "phase1": "1. Дозирование", "phase2": "2. Загрузка", "phase3": "3. Замес и Слив",
         "ready": "Готов", "waiting": "Ожидание",
         "phone": "Телефон", "license": "Водительское Удостоверение", "address": "Адрес", "tax_no": "ИНН/VÖEN",
         "company_name": "Название Предприятия",
-        "close": "Закрыть",
-        "print": "🖨️ Печать",
+        "close": "Закрыть", "print": "🖨️ Печать ТТН",
         "delivered_by": "Сдал (Оператор)",
         "received_by": "Принял (Заказчик)",
         "product_name": "Наименование и Марка Продукции",
-        "phone_label": "Тел",
-        "address_label": "Адрес",
-        "driver_label": "Водитель",
         "tare_weight": "Масса пустого авто (Тара)",
-        "concrete_weight": "Масса бетона",
-        "gross_weight": "Общая масса с грузом (Брутто)",
-        "mixing_time": "Время перемешивания (сек)",
-        "gate_open_time": "Время открытия затвора (сек)",
-        "gate_pulse_period": "Период импульса затвора (сек)",
-        "discharge_time": "Время выгрузки (сек)",
-        "transporter_stop_delay": "Задержка остановки ленты (сек)"
+        "concrete_weight": "Чистая масса бетона (Нетто)",
+        "gross_weight": "Общая масса с грузом (Брутто)"
     }
 }
 
@@ -361,11 +267,11 @@ def init_db():
             ])
             
             stock_data = [
-                ('AGGREGATE', 'Bunker 1', 85000.0, 100000.0), ('AGGREGATE', 'Bunker 2', 72000.0, 100000.0),
-                ('AGGREGATE', 'Bunker 3', 94000.0, 120000.0), ('AGGREGATE', 'Bunker 4', 88000.0, 120000.0),
-                ('CEMENT', 'Silo 1', 45000.0, 60000.0), ('CEMENT', 'Silo 2', 32000.0, 60000.0),
-                ('CEMENT', 'Silo 3', 15000.0, 40000.0), ('CEMENT', 'Silo 4', 20000.0, 50000.0),
-                ('WATER', 'Su', 50000.0, 50000.0), ('ADDITIVE', 'Qatqı', 5000.0, 10000.0)
+                ('AGGREGATE', 'bunker_1', 85000.0, 100000.0), ('AGGREGATE', 'bunker_2', 72000.0, 100000.0),
+                ('AGGREGATE', 'bunker_3', 94000.0, 120000.0), ('AGGREGATE', 'bunker_4', 88000.0, 120000.0),
+                ('CEMENT', 'silo_1', 45000.0, 60000.0), ('CEMENT', 'silo_2', 32000.0, 60000.0),
+                ('CEMENT', 'silo_3', 15000.0, 40000.0), ('CEMENT', 'silo_4', 20000.0, 50000.0),
+                ('WATER', 'water', 50000.0, 50000.0), ('ADDITIVE', 'additive', 5000.0, 10000.0)
             ]
             cursor.executemany("INSERT INTO stock (material_type, code_name, current_kg, max_capacity_kg) VALUES (?, ?, ?, ?)", stock_data)
 
@@ -377,29 +283,6 @@ def init_db():
             ]
             cursor.executemany("INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", recipes_data)
             
-            if os.path.exists('shabran.gpf.csv'):
-                try:
-                    mod_records = []
-                    with codecs.open('shabran.gpf.csv', 'r', encoding='utf-16le') as f:
-                        reader = csv.reader(f, delimiter='\t')
-                        next(reader, None)
-                        next(reader, None)
-                        for row in reader:
-                            if len(row) >= 6:
-                                tag = row[0].strip(' "')
-                                if not tag: continue
-                                try:
-                                    addr_type = int(row[4].strip(' "')) if row[4].strip(' "').isdigit() else 0
-                                    addr = int(row[5].strip(' "')) if row[5].strip(' "').isdigit() else 0
-                                except ValueError:
-                                    addr_type, addr = 0, 0
-                                dtype = "BIT" if addr_type == 1 else "REGISTER"
-                                mod_records.append((tag, dtype, addr, f"Shabran GPF Tag (AddrType: {addr_type})"))
-                    if mod_records:
-                        cursor.executemany("INSERT OR IGNORE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)", mod_records)
-                except Exception as e:
-                    print("Error loading shabran.gpf.csv:", e)
-
             cursor.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
             conn.commit()
 
@@ -520,7 +403,382 @@ def index():
     </div>'''
     return render_page(content, t, lang)
 
-# --- RECIPES (RESEPTLƏR) + TOTAL CUBIC WEIGHT & ADDITIVE KG CALCULATION + CRUD ---
+# --- ORDERS & WAYBILL (СИФАРИШЛӘР ВӘ QAİMӘ) ---
+@app.route('/orders', methods=['GET', 'POST'])
+def orders():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add_order' in request.form:
+                rec_id = request.form['recipe_id']
+                vol = float(request.form['volume_m3'])
+                
+                r = conn.execute("SELECT * FROM recipes WHERE id=?", (rec_id,)).fetchone()
+                if r:
+                    b1, b2, b3, b4 = r[2]*vol, r[3]*vol, r[4]*vol, r[5]*vol
+                    s1, s2, s3, s4 = r[6]*vol, r[7]*vol, r[8]*vol, r[9]*vol
+                    water = r[10]*vol
+                    cement_total = (r[6]+r[7]+r[8]+r[9])*vol
+                    add_kg = cement_total * (r[11]/100.0)
+
+                    # Deduct stock
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='bunker_1'", (b1,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='bunker_2'", (b2,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='bunker_3'", (b3,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='bunker_4'", (b4,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='silo_1'", (s1,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='silo_2'", (s2,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='silo_3'", (s3,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='silo_4'", (s4,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='water'", (water,))
+                    conn.execute("UPDATE stock SET current_kg = current_kg - ? WHERE code_name='additive'", (add_kg,))
+
+                conn.execute("""
+                    INSERT INTO orders (date, client_id, vehicle_id, recipe_id, volume_m3, price_per_m3, operator_id, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    datetime.now().isoformat(),
+                    request.form['client_id'],
+                    request.form['vehicle_id'],
+                    rec_id,
+                    vol,
+                    float(request.form['price_per_m3']),
+                    request.form['operator_id'],
+                    "Tamamlandı"
+                ))
+                conn.commit()
+                return redirect('/orders')
+
+        orders_list = conn.execute('''
+            SELECT o.id, o.date, c.name, v.plate_number, v.tare_weight_kg, r.name, o.volume_m3, o.price_per_m3, (o.volume_m3 * o.price_per_m3), op.name, o.status,
+                   r.bunker_1, r.bunker_2, r.bunker_3, r.bunker_4, r.silo_1, r.silo_2, r.silo_3, r.silo_4, r.water, r.qatki_percent
+            FROM orders o
+            LEFT JOIN clients c ON o.client_id = c.id
+            LEFT JOIN vehicles v ON o.vehicle_id = v.id
+            LEFT JOIN recipes r ON o.recipe_id = r.id
+            LEFT JOIN operators op ON o.operator_id = op.id
+            ORDER BY o.date DESC
+        ''').fetchall()
+        
+        clients = conn.execute("SELECT id, name FROM clients").fetchall()
+        vehicles = conn.execute("SELECT id, plate_number, tare_weight_kg FROM vehicles").fetchall()
+        recipes = conn.execute("SELECT id, name FROM recipes").fetchall()
+        operators = conn.execute("SELECT id, name FROM operators").fetchall()
+
+    rows = ""
+    for o in orders_list:
+        vol = o[6]
+        c_weight = (o[11]+o[12]+o[13]+o[14]+o[15]+o[16]+o[17]+o[18]+o[19] + (o[15]+o[16]+o[17]+o[18])*(o[20]/100.0)) * vol if o[11] else 0
+        tare = o[4] if o[4] else 12000.0
+        gross = tare + c_weight
+
+        rows += f"""<tr>
+            <td>{o[0]}</td>
+            <td>{o[1][:16]}</td>
+            <td><b>{o[2]}</b></td>
+            <td>{o[3]} <br><small class='text-muted'>Tara: {tare:,.0f} kq</small></td>
+            <td>{o[5]}</td>
+            <td><b>{o[6]} m³</b><br><small class='text-info'>Net: {c_weight:,.0f} kq</small></td>
+            <td class='text-warning fw-bold'>{gross:,.0f} kq</td>
+            <td class='text-success fw-bold'>{o[8]} AZN</td>
+            <td>{o[9]}</td>
+            <td><span class='badge bg-success'>{o[10]}</span></td>
+            <td>
+                <a href='/orders/waybill/{o[0]}' class='btn btn-info btn-sm me-1' target='_blank'>📄 {t['waybill']}</a>
+                <a href='/orders/delete/{o[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
+            </td>
+        </tr>"""
+
+    client_opts = "".join([f"<option value='{c[0]}'>{c[1]}</option>" for c in clients])
+    veh_opts = "".join([f"<option value='{v[0]}'>{v[1]} (Tara: {v[2]} kq)</option>" for v in vehicles])
+    rec_opts = "".join([f"<option value='{r[0]}'>{r[1]}</option>" for r in recipes])
+    op_opts = "".join([f"<option value='{op[0]}'>{op[1]}</option>" for op in operators])
+
+    content = f'''
+    <h2 class="text-warning mb-4">📦 {t['orders']}</h2>
+    
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Sifariş Əlavə Et və Anbardan Çıx</h4>
+        <form method="POST">
+            <input type="hidden" name="add_order" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-2"><label>{t['client']}</label><select name="client_id" class="form-select">{client_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['mixer']}</label><select name="vehicle_id" class="form-select">{veh_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['recipe']}</label><select name="recipe_id" class="form-select">{rec_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['operator']}</label><select name="operator_id" class="form-select">{op_opts}</select></div>
+                <div class="col-md-4 mb-2"><label>{t['volume']} (m³)</label><input type="number" step="0.5" name="volume_m3" class="form-control" value="10.0" required></div>
+                <div class="col-md-4 mb-2"><label>{t['price_m3']}</label><input type="number" step="1" name="price_per_m3" class="form-control" value="110" required></div>
+                <div class="col-md-4 mb-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">{t['confirm_order']}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>{t['id']}</th>
+                        <th>{t['date']}</th>
+                        <th>{t['client']}</th>
+                        <th>{t['mixer']}</th>
+                        <th>{t['recipe']}</th>
+                        <th>{t['volume']} / Net</th>
+                        <th>Brutto</th>
+                        <th>{t['total_price']}</th>
+                        <th>{t['operator']}</th>
+                        <th>Status</th>
+                        <th>{t['action']}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows if rows else "<tr><td colspan='11' class='text-center text-muted'>Sifariş yoxdur.</td></tr>"}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+@app.route('/orders/waybill/<int:id>')
+def waybill(id):
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        o = conn.execute('''
+            SELECT o.id, o.date, c.name, c.address, v.plate_number, v.tare_weight_kg, d.name, r.name, o.volume_m3, op.name,
+                   r.bunker_1, r.bunker_2, r.bunker_3, r.bunker_4, r.silo_1, r.silo_2, r.silo_3, r.silo_4, r.water, r.qatki_percent
+            FROM orders o
+            LEFT JOIN clients c ON o.client_id = c.id
+            LEFT JOIN vehicles v ON o.vehicle_id = v.id
+            LEFT JOIN drivers d ON v.driver_id = d.id
+            LEFT JOIN recipes r ON o.recipe_id = r.id
+            LEFT JOIN operators op ON o.operator_id = op.id
+            WHERE o.id=?
+        ''', (id,)).fetchone()
+        comp = conn.execute("SELECT * FROM company_info LIMIT 1").fetchone()
+
+    if not o: return "Sənəd tapılmadı", 404
+    vol = o[8]
+    c_weight = (o[10]+o[11]+o[12]+o[13]+o[14]+o[15]+o[16]+o[17]+o[18] + (o[14]+o[15]+o[16]+o[17])*(o[19]/100.0)) * vol
+    tare = o[5] if o[5] else 12000.0
+    gross = tare + c_weight
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="{lang}">
+    <head>
+        <meta charset="UTF-8">
+        <title>{t['waybill']} #{o[0]}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>body {{ background: #fff; color: #000; font-family: monospace; }}</style>
+    </head>
+    <body onload="window.print()">
+        <div class="container mt-4 border p-4 shadow-sm" style="max-width: 800px;">
+            <div class="text-center mb-3">
+                <h3>{comp[1]}</h3>
+                <p class="mb-1">{comp[2]} | Tel: {comp[3]} | VÖEN: {comp[4]}</p>
+                <h4 class="text-uppercase fw-bold mt-3 border-bottom pb-2">📄 {t['waybill']} № {o[0]}</h4>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <p><b>Tarix / Tarih:</b> {o[1][:16]}</p>
+                    <p><b>Müştəri / Müşteri:</b> {o[2]}</p>
+                    <p><b>Ünvan / Adres:</b> {o[3]}</p>
+                </div>
+                <div class="col-6">
+                    <p><b>Mikser / Araç:</b> {o[4]}</p>
+                    <p><b>Sürücü / Şoför:</b> {o[6]}</p>
+                    <p><b>Operator:</b> {o[9]}</p>
+                </div>
+            </div>
+            <table class="table table-bordered">
+                <tr class="table-secondary">
+                    <th>Məhsul / Ürün</th>
+                    <th>Həcm / Hacim</th>
+                    <th>{t['tare_weight']}</th>
+                    <th>{t['concrete_weight']}</th>
+                    <th>{t['gross_weight']}</th>
+                </tr>
+                <tr>
+                    <td><b>{o[7]}</b></td>
+                    <td>{o[8]} m³</td>
+                    <td>{tare:,.0f} kq</td>
+                    <td>{c_weight:,.0f} kq</td>
+                    <td><b>{gross:,.0f} kq</b></td>
+                </tr>
+            </table>
+            <div class="row mt-5">
+                <div class="col-6 text-center">
+                    <p class="border-top pt-2"><b>{t['delivered_by']}</b><br>{o[9]}</p>
+                </div>
+                <div class="col-6 text-center">
+                    <p class="border-top pt-2"><b>{t['received_by']}</b><br>{o[2]}</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return html
+
+@app.route('/orders/delete/<int:id>')
+def delete_order(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM orders WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/orders')
+
+# --- REPORTS & ANALYTICS (ГЕРОЙ ДНЯ: УНИВЕРСАЛЬНАЯ ОТЧЕТНАЯ СИСТЕМА) ---
+@app.route('/reports', methods=['GET', 'POST'])
+def reports():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    labels = get_labels()
+
+    driver_filter = request.args.get('driver', '')
+    vehicle_filter = request.args.get('vehicle', '')
+    silo_filter = request.args.get('silo', '')
+
+    with sqlite3.connect(DB) as conn:
+        drivers = conn.execute("SELECT id, name FROM drivers").fetchall()
+        vehicles = conn.execute("SELECT id, plate_number FROM vehicles").fetchall()
+
+        # Query orders with filters
+        query = '''
+            SELECT o.id, o.date, c.name, v.plate_number, d.name, r.name, o.volume_m3, (o.volume_m3 * o.price_per_m3), op.name
+            FROM orders o
+            LEFT JOIN clients c ON o.client_id = c.id
+            LEFT JOIN vehicles v ON o.vehicle_id = v.id
+            LEFT JOIN drivers d ON v.driver_id = d.id
+            LEFT JOIN recipes r ON o.recipe_id = r.id
+            LEFT JOIN operators op ON o.operator_id = op.id
+            WHERE 1=1
+        '''
+        params = []
+        if driver_filter:
+            query += " AND d.id = ?"
+            params.append(driver_filter)
+        if vehicle_filter:
+            query += " AND v.id = ?"
+            params.append(vehicle_filter)
+        query += " ORDER BY o.date DESC"
+
+        filtered_orders = conn.execute(query, params).fetchall()
+
+        # Stock summary for silos & bunkers
+        stock_list = conn.execute("SELECT material_type, code_name, current_kg, max_capacity_kg FROM stock").fetchall()
+
+    ord_rows = ""
+    total_vol = 0
+    total_amt = 0
+    for ord_item in filtered_orders:
+        total_vol += ord_item[6]
+        total_amt += ord_item[7]
+        ord_rows += f"""<tr>
+            <td>{ord_item[0]}</td>
+            <td>{ord_item[1][:16]}</td>
+            <td><b>{ord_item[2]}</b></td>
+            <td>{ord_item[3]}</td>
+            <td>{ord_item[4]}</td>
+            <td>{ord_item[5]}</td>
+            <td>{ord_item[6]} m³</td>
+            <td class='text-warning fw-bold'>{ord_item[7]} AZN</td>
+            <td>{ord_item[8]}</td>
+        </tr>"""
+
+    stock_rows = ""
+    for s in stock_list:
+        if silo_filter and silo_filter.lower() not in s[1].lower(): continue
+        stock_rows += f"""<tr>
+            <td><span class='badge bg-secondary'>{s[0]}</span></td>
+            <td><b>{labels.get(s[1], s[1])}</b></td>
+            <td class='text-warning fw-bold'>{s[2]:,.1f} kq</td>
+            <td>{s[3]:,.1f} kq</td>
+        </tr>"""
+
+    driver_opts = "".join([f"<option value='{d[0]}' {'selected' if driver_filter==str(d[0]) else ''}>{d[1]}</option>" for d in drivers])
+    veh_opts = "".join([f"<option value='{v[0]}' {'selected' if vehicle_filter==str(v[0]) else ''}>{v[1]}</option>" for v in vehicles])
+
+    content = f'''
+    <h2 class="text-warning mb-4">📊 {t['reports']} (Uniwersal Hesabat Sistemi)</h2>
+
+    <div class="card p-4 shadow mb-4 border-info">
+        <h4 class="text-info mb-3">🔍 Filtrlər və Axtarış</h4>
+        <form method="GET" class="row">
+            <div class="col-md-4 mb-2">
+                <label>Sürücü Üzrə Filtr</label>
+                <select name="driver" class="form-select">
+                    <option value="">Bütün Sürücülər</option>
+                    {driver_opts}
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label>Maşın (Mikser) Üzrə Filtr</label>
+                <select name="vehicle" class="form-select">
+                    <option value="">Bütün Maşınlar</option>
+                    {veh_opts}
+                </select>
+            </div>
+            <div class="col-md-4 mb-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-info w-100 fw-bold">🔍 Hesabatı Yenilə</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card p-4 shadow border-warning h-100">
+                <h4 class="text-warning mb-3">⚖️ Ümumi Göstəricilər</h4>
+                <p><b>Seçilmiş Reyslərin Sayı:</b> {len(filtered_orders)}</p>
+                <p><b>Ümumi Daşınan Həcm:</b> <span class="text-warning fw-bold">{total_vol:,.1f} m³</span></p>
+                <p><b>Ümumi Dövriyyə Məbləği:</b> <span class="text-success fw-bold">{total_amt:,.2f} AZN</span></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-4 shadow border-success h-100">
+                <h4 class="text-success mb-3">🪨 Silolar və Bunkerlər Qalıq Hesabatı</h4>
+                <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                    <table class="table table-striped table-sm">
+                        <thead><tr class="table-dark"><th>Tip</th><th>Ad</th><th>Qalıq</th><th>Maks</th></tr></thead>
+                        <tbody>{stock_rows}</tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 shadow border-secondary">
+        <h4 class="text-light mb-3">📋 Reys və Daşınma Tarixçəsi</h4>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>ID</th>
+                        <th>Tarix</th>
+                        <th>Müştəri</th>
+                        <th>Maşın</th>
+                        <th>Sürücü</th>
+                        <th>Resept</th>
+                        <th>Həcm</th>
+                        <th>Məbləğ</th>
+                        <th>Operator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ord_rows if ord_rows else "<tr><td colspan='9' class='text-center text-muted'>Heç bir məlumat tapılmadı.</td></tr>"}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+# --- RECIPES (RESEPTLƏR) CRUD ---
 @app.route('/recipes', methods=['GET', 'POST'])
 def recipes():
     lang = get_lang()
@@ -546,11 +804,8 @@ def recipes():
 
     rows = ""
     for r in recipes_list:
-        # Calculate total cement / binder weight
         total_cement = r[6] + r[7] + r[8] + r[9]
-        # Calculate additive kg from percentage of cement
         additive_kg = total_cement * (r[11] / 100.0)
-        # Calculate total weight per 1 m3
         total_weight_m3 = r[2] + r[3] + r[4] + r[5] + total_cement + r[10] + additive_kg
         
         rows += f"""<tr>
@@ -678,184 +933,12 @@ def delete_recipe(id):
         conn.commit()
     return redirect('/recipes')
 
-# --- SETTINGS (FACTORY & MATERIAL LABELS) ---
-@app.route('/settings', methods=['GET', 'POST'])
-def settings():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    
-    with sqlite3.connect(DB) as conn:
-        if request.method == 'POST':
-            if 'save_labels' in request.form:
-                for key in ['bunker_1', 'bunker_2', 'bunker_3', 'bunker_4', 'silo_1', 'silo_2', 'silo_3', 'silo_4', 'water', 'additive']:
-                    val = request.form.get(key)
-                    if val:
-                        conn.execute("INSERT OR REPLACE INTO material_labels (key_name, display_name) VALUES (?, ?)", (key, val))
-                conn.commit()
-                return redirect('/settings')
-
-        f_set = conn.execute("SELECT * FROM factory_settings LIMIT 1").fetchone()
-    
-    labels = get_labels()
-
-    content = f'''
-    <h2 class="text-warning mb-4">⚙️ {t['settings']} (Parametrlər və Material Adları)</h2>
-    
-    <div class="card p-4 shadow mb-4 border-warning">
-        <h4 class="text-warning mb-3">🏷️ Bunker və Silo Adlarının Redaktəsi (Material Növləri)</h4>
-        <form method="POST">
-            <input type="hidden" name="save_labels" value="1">
-            <div class="row">
-                <div class="col-md-3 mb-3"><label>Bunker 1 Adı</label><input type="text" name="bunker_1" class="form-control" value="{labels['bunker_1']}" required></div>
-                <div class="col-md-3 mb-3"><label>Bunker 2 Adı</label><input type="text" name="bunker_2" class="form-control" value="{labels['bunker_2']}" required></div>
-                <div class="col-md-3 mb-3"><label>Bunker 3 Adı</label><input type="text" name="bunker_3" class="form-control" value="{labels['bunker_3']}" required></div>
-                <div class="col-md-3 mb-3"><label>Bunker 4 Adı</label><input type="text" name="bunker_4" class="form-control" value="{labels['bunker_4']}" required></div>
-                
-                <div class="col-md-3 mb-3"><label>Silo 1 Adı (Sement)</label><input type="text" name="silo_1" class="form-control" value="{labels['silo_1']}" required></div>
-                <div class="col-md-3 mb-3"><label>Silo 2 Adı (Sement)</label><input type="text" name="silo_2" class="form-control" value="{labels['silo_2']}" required></div>
-                <div class="col-md-3 mb-3"><label>Silo 3 Adı</label><input type="text" name="silo_3" class="form-control" value="{labels['silo_3']}" required></div>
-                <div class="col-md-3 mb-3"><label>Silo 4 Adı</label><input type="text" name="silo_4" class="form-control" value="{labels['silo_4']}" required></div>
-                
-                <div class="col-md-6 mb-3"><label>Su Adı</label><input type="text" name="water" class="form-control" value="{labels['water']}" required></div>
-                <div class="col-md-6 mb-3"><label>Qatqı Adı</label><input type="text" name="additive" class="form-control" value="{labels['additive']}" required></div>
-            </div>
-            <button type="submit" class="btn btn-warning fw-bold px-4">💾 Adları Yadda Saxla</button>
-        </form>
-    </div>
-
-    <div class="card p-4 shadow">
-        <h4 class="text-info mb-3">🏭 Zavod Texniki Parametrləri</h4>
-        <div class="row">
-            <div class="col-md-4 mb-3"><label>Mikser Həcmi (m³)</label><input type="text" class="form-control" value="{f_set[1] if f_set else 2.0}" readonly></div>
-            <div class="col-md-4 mb-3"><label>{t['mixing_time']}</label><input type="text" class="form-control" value="{f_set[2] if f_set else 45.0}" readonly></div>
-            <div class="col-md-4 mb-3"><label>{t['gate_open_time']}</label><input type="text" class="form-control" value="{f_set[3] if f_set else 5.0}" readonly></div>
-        </div>
-        <a href="/" class="btn btn-secondary mt-2">{t['back']}</a>
-    </div>'''
-    return render_page(content, t, lang)
-
-# --- ORDERS (SİPARİŞLƏR) ---
-@app.route('/orders', methods=['GET', 'POST'])
-def orders():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        if request.method == 'POST':
-            if 'add_order' in request.form:
-                conn.execute("""
-                    INSERT INTO orders (date, client_id, vehicle_id, recipe_id, volume_m3, price_per_m3, operator_id, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    datetime.now().isoformat(),
-                    request.form['client_id'],
-                    request.form['vehicle_id'],
-                    request.form['recipe_id'],
-                    float(request.form['volume_m3']),
-                    float(request.form['price_per_m3']),
-                    request.form['operator_id'],
-                    "İcrada"
-                ))
-                conn.commit()
-                return redirect('/orders')
-
-        orders_list = conn.execute('''
-            SELECT o.id, o.date, c.name, v.plate_number, r.name, o.volume_m3, o.price_per_m3, (o.volume_m3 * o.price_per_m3), op.name, o.status
-            FROM orders o
-            LEFT JOIN clients c ON o.client_id = c.id
-            LEFT JOIN vehicles v ON o.vehicle_id = v.id
-            LEFT JOIN recipes r ON o.recipe_id = r.id
-            LEFT JOIN operators op ON o.operator_id = op.id
-            ORDER BY o.date DESC
-        ''').fetchall()
-        
-        clients = conn.execute("SELECT id, name FROM clients").fetchall()
-        vehicles = conn.execute("SELECT id, plate_number FROM vehicles").fetchall()
-        recipes = conn.execute("SELECT id, name FROM recipes").fetchall()
-        operators = conn.execute("SELECT id, name FROM operators").fetchall()
-
-    rows = ""
-    for o in orders_list:
-        rows += f"""<tr>
-            <td>{o[0]}</td>
-            <td>{o[1][:16]}</td>
-            <td><b>{o[2]}</b></td>
-            <td>{o[3]}</td>
-            <td>{o[4]}</td>
-            <td>{o[5]} m³</td>
-            <td>{o[6]} AZN</td>
-            <td class='text-warning fw-bold'>{o[7]} AZN</td>
-            <td>{o[8]}</td>
-            <td><span class='badge bg-success'>{o[9]}</span></td>
-            <td>
-                <a href='/orders/delete/{o[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
-            </td>
-        </tr>"""
-
-    client_opts = "".join([f"<option value='{c[0]}'>{c[1]}</option>" for c in clients])
-    veh_opts = "".join([f"<option value='{v[0]}'>{v[1]}</option>" for v in vehicles])
-    rec_opts = "".join([f"<option value='{r[0]}'>{r[1]}</option>" for r in recipes])
-    op_opts = "".join([f"<option value='{op[0]}'>{op[1]}</option>" for op in operators])
-
-    content = f'''
-    <h2 class="text-warning mb-4">📦 {t['orders']}</h2>
-    
-    <div class="card p-4 shadow mb-4 border-warning">
-        <h4 class="text-warning mb-3">➕ Yeni Sifariş Əlavə Et</h4>
-        <form method="POST">
-            <input type="hidden" name="add_order" value="1">
-            <div class="row">
-                <div class="col-md-3 mb-2"><label>{t['client']}</label><select name="client_id" class="form-select">{client_opts}</select></div>
-                <div class="col-md-3 mb-2"><label>{t['mixer']}</label><select name="vehicle_id" class="form-select">{veh_opts}</select></div>
-                <div class="col-md-3 mb-2"><label>{t['recipe']}</label><select name="recipe_id" class="form-select">{rec_opts}</select></div>
-                <div class="col-md-3 mb-2"><label>{t['operator']}</label><select name="operator_id" class="form-select">{op_opts}</select></div>
-                <div class="col-md-4 mb-2"><label>{t['volume']} (m³)</label><input type="number" step="0.1" name="volume_m3" class="form-control" value="10.0" required></div>
-                <div class="col-md-4 mb-2"><label>{t['price_m3']}</label><input type="number" step="0.1" name="price_per_m3" class="form-control" value="110.0" required></div>
-                <div class="col-md-4 mb-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-warning w-100 fw-bold">{t['confirm_order']}</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <div class="card p-4 shadow">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark">
-                        <th>{t['id']}</th>
-                        <th>{t['date']}</th>
-                        <th>{t['client']}</th>
-                        <th>{t['mixer']}</th>
-                        <th>{t['recipe']}</th>
-                        <th>{t['volume']}</th>
-                        <th>{t['price_m3']}</th>
-                        <th>{t['total_price']}</th>
-                        <th>{t['operator']}</th>
-                        <th>Status</th>
-                        <th>{t['action']}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows if rows else "<tr><td colspan='11' class='text-center text-muted'>Sifariş yoxdur.</td></tr>"}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    '''
-    return render_page(content, t, lang)
-
-@app.route('/orders/delete/<int:id>')
-def delete_order(id):
-    with sqlite3.connect(DB) as conn:
-        conn.execute("DELETE FROM orders WHERE id=?", (id,))
-        conn.commit()
-    return redirect('/orders')
-
-# --- STOCK (ANBAR) ---
+# --- STOCK & SETTINGS ---
 @app.route('/stock', methods=['GET', 'POST'])
 def stock():
     lang = get_lang()
     t = TRANSLATIONS[lang]
+    labels = get_labels()
     with sqlite3.connect(DB) as conn:
         if request.method == 'POST':
             if 'update_stock' in request.form:
@@ -869,10 +952,11 @@ def stock():
     for s in stock_list:
         pct = min(100, max(0, int((s[3] / s[4]) * 100))) if s[4] > 0 else 0
         color = "bg-success" if pct > 30 else "bg-warning" if pct > 15 else "bg-danger"
+        mat_display_name = labels.get(s[2], s[2])
         rows += f"""<tr>
             <td>{s[0]}</td>
             <td><span class='badge bg-secondary'>{s[1]}</span></td>
-            <td><b>{s[2]}</b></td>
+            <td><b>{mat_display_name}</b></td>
             <td class='text-warning fw-bold'>{s[3]:,.1f} kq</td>
             <td>{s[4]:,.1f} kq</td>
             <td style='width: 200px;'>
@@ -891,7 +975,7 @@ def stock():
         </tr>"""
 
     content = f'''
-    <h2 class="text-warning mb-4">🪨 {t['stock']} (Silo & Bunker Balansları)</h2>
+    <h2 class="text-warning mb-4">🪨 {t['stock']}</h2>
     <div class="card p-4 shadow">
         <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
@@ -912,283 +996,254 @@ def stock():
     </div>'''
     return render_page(content, t, lang)
 
-# --- MODBUS & REGISTERS ---
-@app.route('/modbus', methods=['GET', 'POST'])
-def modbus():
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
     lang = get_lang()
     t = TRANSLATIONS[lang]
     
     with sqlite3.connect(DB) as conn:
         if request.method == 'POST':
-            if 'save_config' in request.form:
-                conn.execute("UPDATE modbus_settings SET plc_ip=?, plc_port=?, slave_id=? WHERE id=1",
-                           (request.form['plc_ip'], request.form['plc_port'], request.form['slave_id']))
-            elif 'add_tag' in request.form:
-                try:
-                    conn.execute("INSERT OR REPLACE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
-                               (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
-                except Exception as e:
-                    print("Error adding tag:", e)
-            elif 'upload_csv' in request.files or 'upload_csv' in request.form:
-                file = request.files.get('upload_csv')
-                if file and file.filename.endswith('.csv'):
-                    content_bytes = file.read()
-                    text_content = ""
-                    for enc in ['utf-16le', 'utf-8', 'cp1251']:
-                        try:
-                            text_content = content_bytes.decode(enc)
-                            break
-                        except Exception:
-                            continue
-                    if text_content:
-                        f_stream = io.StringIO(text_content)
-                        reader = csv.reader(f_stream, delimiter='\t')
-                        next(reader, None)
-                        next(reader, None)
-                        for row in reader:
-                            if len(row) >= 6:
-                                tag = row[0].strip(' "')
-                                if not tag: continue
-                                try:
-                                    addr_type = int(row[4].strip(' "')) if row[4].strip(' "').isdigit() else 0
-                                    addr = int(row[5].strip(' "')) if row[5].strip(' "').isdigit() else 0
-                                except ValueError:
-                                    addr_type, addr = 0, 0
-                                dtype = "BIT" if addr_type == 1 else "REGISTER"
-                                conn.execute("INSERT OR IGNORE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
-                                           (tag, dtype, addr, f"Imported CSV Tag (AddrType: {addr_type})"))
-            conn.commit()
-            return redirect('/modbus')
+            if 'save_labels' in request.form:
+                for key in ['bunker_1', 'bunker_2', 'bunker_3', 'bunker_4', 'silo_1', 'silo_2', 'silo_3', 'silo_4', 'water', 'additive']:
+                    val = request.form.get(key)
+                    if val:
+                        conn.execute("INSERT OR REPLACE INTO material_labels (key_name, display_name) VALUES (?, ?)", (key, val))
+                conn.commit()
+                return redirect('/settings')
 
-        cfg = conn.execute("SELECT plc_ip, plc_port, slave_id FROM modbus_settings LIMIT 1").fetchone()
-        if not cfg:
-            conn.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
-            conn.commit()
-            cfg = ('192.168.1.50', 502, 1)
-
-        registers = conn.execute("SELECT id, tag_name, data_type, address, description FROM modbus_registers ORDER BY data_type, address").fetchall()
-
-    rows = ""
-    for r in registers:
-        type_badge = "<span class='badge bg-warning text-dark'>REGISTER</span>" if r[2] == "REGISTER" else "<span class='badge bg-info text-dark'>BIT (Coil)</span>"
-        rows += f"""<tr>
-            <td>{r[0]}</td>
-            <td><b>{r[1]}</b></td>
-            <td>{type_badge}</td>
-            <td class='font-monospace text-warning fw-bold'>{r[3]}</td>
-            <td>{r[4]}</td>
-            <td>
-                <a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
-            </td>
-        </tr>"""
+        f_set = conn.execute("SELECT * FROM factory_settings LIMIT 1").fetchone()
+    
+    labels = get_labels()
 
     content = f'''
-    <h2 class="text-warning mb-4">🔌 Modbus TCP Configuration & Register Mapping ({len(registers)} Tags)</h2>
+    <h2 class="text-warning mb-4">⚙️ {t['settings']}</h2>
     
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card p-4 shadow mb-3 border-info">
-                <h4 class="text-info mb-3">🌐 Connection</h4>
-                <form method="POST">
-                    <input type="hidden" name="save_config" value="1">
-                    <div class="mb-2"><label>PLC IP Address</label><input type="text" name="plc_ip" class="form-control" value="{cfg[0]}" required></div>
-                    <div class="mb-2"><label>Modbus Port</label><input type="number" name="plc_port" class="form-control" value="{cfg[1]}" required></div>
-                    <div class="mb-3"><label>Slave / Unit ID</label><input type="number" name="slave_id" class="form-control" value="{cfg[2]}" required></div>
-                    <button type="submit" class="btn btn-info w-100 fw-bold">{t['save']}</button>
-                </form>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">🏷️ Bunker və Silo Adlarının Redaktəsi</h4>
+        <form method="POST">
+            <input type="hidden" name="save_labels" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-3"><label>Bunker 1 Adı</label><input type="text" name="bunker_1" class="form-control" value="{labels['bunker_1']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 2 Adı</label><input type="text" name="bunker_2" class="form-control" value="{labels['bunker_2']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 3 Adı</label><input type="text" name="bunker_3" class="form-control" value="{labels['bunker_3']}" required></div>
+                <div class="col-md-3 mb-3"><label>Bunker 4 Adı</label><input type="text" name="bunker_4" class="form-control" value="{labels['bunker_4']}" required></div>
+                
+                <div class="col-md-3 mb-3"><label>Silo 1 Adı</label><input type="text" name="silo_1" class="form-control" value="{labels['silo_1']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 2 Adı</label><input type="text" name="silo_2" class="form-control" value="{labels['silo_2']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 3 Adı</label><input type="text" name="silo_3" class="form-control" value="{labels['silo_3']}" required></div>
+                <div class="col-md-3 mb-3"><label>Silo 4 Adı</label><input type="text" name="silo_4" class="form-control" value="{labels['silo_4']}" required></div>
+                
+                <div class="col-md-6 mb-3"><label>Su Adı</label><input type="text" name="water" class="form-control" value="{labels['water']}" required></div>
+                <div class="col-md-6 mb-3"><label>Qatqı Adı</label><input type="text" name="additive" class="form-control" value="{labels['additive']}" required></div>
             </div>
-            
-            <div class="card p-4 shadow border-success mb-3">
-                <h4 class="text-success mb-3">📁 CSV Faylı Yüklə</h4>
-                <form method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="upload_csv" value="1">
-                    <div class="mb-3">
-                        <label class="form-label text-success">Shabran GPF CSV Faylı (.csv)</label>
-                        <input type="file" name="upload_csv" class="form-control" accept=".csv" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100 fw-bold">📥 Faylı Seç və Yüklə</button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="col-md-8">
-            <div class="card p-4 shadow border-warning">
-                <h4 class="text-warning mb-3">➕ Add Tag / Address</h4>
-                <form method="POST">
-                    <input type="hidden" name="add_tag" value="1">
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <label>Tag Name</label>
-                            <input type="text" name="tag_name" class="form-control" placeholder="e.g. Bunker1_Weight" required>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label>Type</label>
-                            <select name="data_type" class="form-select">
-                                <option value="REGISTER">REGISTER (Holding / 16-bit)</option>
-                                <option value="BIT">BIT (Coil / 1-bit)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label>Address Offset</label>
-                            <input type="number" name="address" class="form-control" placeholder="e.g. 40001 or 0" required>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label>Description</label>
-                            <input type="text" name="description" class="form-control" placeholder="e.g. Bunker 1 Load Cell Value">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
-                </form>
-            </div>
-        </div>
+            <button type="submit" class="btn btn-warning fw-bold px-4">💾 Adları Yadda Saxla</button>
+        </form>
     </div>
 
-    <div class="card p-4 shadow border-secondary">
-        <h4 class="text-light mb-3">📋 Registered Modbus Tags ({len(registers)})</h4>
-        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark sticky-top">
-                        <th>ID</th>
-                        <th>Tag Name</th>
-                        <th>Type</th>
-                        <th>Address</th>
-                        <th>Description</th>
-                        <th>{t['action']}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows if rows else "<tr><td colspan='6' class='text-center text-muted'>Heç bir registr tapılmadı.</td></tr>"}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    '''
-    return render_page(content, t, lang)
-
-@app.route('/modbus/delete/<int:reg_id>')
-def delete_modbus_reg(reg_id):
-    with sqlite3.connect(DB) as conn:
-        conn.execute("DELETE FROM modbus_registers WHERE id=?", (reg_id,))
-        conn.commit()
-    return redirect('/modbus')
-
-# --- READ / WRITE CONTROL PANEL (SET, RESET, TOGGLE) ---
-@app.route('/read_write', methods=['GET', 'POST'])
-def read_write():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    
-    msg = ""
-    with sqlite3.connect(DB) as conn:
-        if request.method == 'POST':
-            action_type = request.form.get('action_type')
-            addr = request.form.get('address')
-            val = request.form.get('value', '0')
-            
-            if action_type == 'SET':
-                msg = f"✅ Ünvan {addr} SET (1) əmri uğurla göndərildi."
-            elif action_type == 'RESET':
-                msg = f"✅ Ünvan {addr} RESET (0) əmri uğurla göndərildi."
-            elif action_type == 'TOGGLE':
-                msg = f"✅ Ünvan {addr} TOGGLE əmri uğurla göndərildi."
-            elif action_type == 'WRITE_REG':
-                msg = f"✅ Ünvan {addr} registrə {val} qiyməti yazıldı."
-
-        registers = conn.execute("SELECT tag_name, data_type, address, description FROM modbus_registers ORDER BY data_type, address").fetchall()
-
-    rw_rows = ""
-    for r in registers:
-        t_badge = "<span class='badge bg-warning text-dark'>REG</span>" if r[1] == "REGISTER" else "<span class='badge bg-info text-dark'>BIT</span>"
-        rw_rows += f"""<tr>
-            <td><b>{r[0]}</b></td>
-            <td>{t_badge}</td>
-            <td class='font-monospace text-warning fw-bold'>{r[2]}</td>
-            <td>{r[3]}</td>
-            <td class='font-monospace text-success'>0 (Online Sim)</td>
-        </tr>"""
-
-    content = f'''
-    <h2 class="text-warning mb-4">🎛️ Modbus Read / Write & Control Panel</h2>
-    
-    {f'<div class="alert alert-success fw-bold">{msg}</div>' if msg else ''}
-    
-    <div class="row mb-4">
-        <div class="col-md-5">
-            <div class="card p-4 shadow border-success mb-3">
-                <h4 class="text-success mb-3">⚡ Bit Komandaları (Set, Reset, Toggle)</h4>
-                <form method="POST">
-                    <div class="mb-2">
-                        <label>Bit Ünvanı (Address / Coil)</label>
-                        <input type="number" name="address" class="form-control" placeholder="Məs: 1 və ya 76" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Əməliyyat Növü</label>
-                        <select name="action_type" class="form-select">
-                            <option value="SET">SET (1 et / Aktivləşdir)</option>
-                            <option value="RESET">RESET (0 et / Söndür)</option>
-                            <option value="TOGGLE">TOGGLE (Tərsinə çevir)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100 fw-bold">🚀 Komandanı Göndər</button>
-                </form>
-            </div>
-            
-            <div class="card p-4 shadow border-warning">
-                <h4 class="text-warning mb-3">✍️ Registrə Qiymət Yazmaq (Write Holding)</h4>
-                <form method="POST">
-                    <input type="hidden" name="action_type" value="WRITE_REG">
-                    <div class="mb-2">
-                        <label>Registr Ünvanı</label>
-                        <input type="number" name="address" class="form-control" placeholder="Məs: 40001 və ya 100" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Yazılacaq Dəyər (Value)</label>
-                        <input type="number" step="any" name="value" class="form-control" placeholder="Məs: 150" required>
-                    </div>
-                    <button type="submit" class="btn btn-warning w-100 fw-bold">💾 Registrə Yaz</button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="col-md-7">
-            <div class="card p-4 shadow border-secondary">
-                <h4 class="text-light mb-3">📖 Canlı Oxuma Cədvəli (Read Status)</h4>
-                <div class="table-responsive" style="max-height: 430px; overflow-y: auto;">
-                    <table class="table table-striped table-hover align-middle">
-                        <thead>
-                            <tr class="table-dark sticky-top">
-                                <th>Tag Name</th>
-                                <th>Type</th>
-                                <th>Address</th>
-                                <th>Description</th>
-                                <th>Cari Dəyər</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rw_rows if rw_rows else "<tr><td colspan='5' class='text-center text-muted'>Registr yoxdur.</td></tr>"}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    '''
-    return render_page(content, t, lang)
-
-# --- OTHER PAGES & DIRECTORIES ---
-@app.route('/reports')
-def reports():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    content = f'''
-    <h2 class="text-warning mb-4">📊 {t['reports']}</h2>
     <div class="card p-4 shadow">
-        <p class="text-secondary">Hesabatlar və tarixçə modulu aktivdir.</p>
-        <a href="/orders" class="btn btn-outline-warning">Sifariş Hesabatlarına Bax</a>
+        <h4 class="text-info mb-3">🏭 Zavod Texniki Parametrləri</h4>
+        <div class="row">
+            <div class="col-md-4 mb-3"><label>Mikser Həcmi (m³)</label><input type="text" class="form-control" value="{f_set[1] if f_set else 2.0}" readonly></div>
+            <div class="col-md-4 mb-3"><label>Qarışdırma Müddəti (san)</label><input type="text" class="form-control" value="{f_set[2] if f_set else 45.0}" readonly></div>
+            <div class="col-md-4 mb-3"><label>Qapağın Açılma Vaxtı (san)</label><input type="text" class="form-control" value="{f_set[3] if f_set else 5.0}" readonly></div>
+        </div>
+        <a href="/" class="btn btn-secondary mt-2">{t['back']}</a>
     </div>'''
     return render_page(content, t, lang)
 
+# --- DIRECTORIES CRUD (OPERATORS, DRIVERS, VEHICLES, CLIENTS, SUPPLIERS) ---
+@app.route('/operators', methods=['GET', 'POST'])
+def operators():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add' in request.form:
+                conn.execute("INSERT INTO operators (name, phone) VALUES (?, ?)", (request.form['name'], request.form['phone']))
+                conn.commit()
+                return redirect('/operators')
+        ops = conn.execute("SELECT * FROM operators").fetchall()
+
+    rows = "".join([f"<tr><td>{o[0]}</td><td><b>{o[1]}</b></td><td>{o[2]}</td><td><a href='/operators/delete/{o[0]}' class='btn btn-danger btn-sm' onclick='return confirm(\"Əminsiniz?\")'>🗑️ {t['delete']}</a></td></tr>" for o in ops])
+    content = f'''
+    <h2 class="text-warning mb-4">👷 {t['operators']}</h2>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Operator Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add" value="1">
+            <div class="row">
+                <div class="col-md-5 mb-2"><label>Ad Soyad</label><input type="text" name="name" class="form-control" required></div>
+                <div class="col-md-5 mb-2"><label>Telefon</label><input type="text" name="phone" class="form-control" required></div>
+                <div class="col-md-2 mb-2 d-flex align-items-end"><button type="submit" class="btn btn-warning w-100 fw-bold">{t['add']}</button></div>
+            </div>
+        </form>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th><th>{t['action']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+    return render_page(content, t, lang)
+
+@app.route('/operators/delete/<int:id>')
+def delete_operator(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM operators WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/operators')
+
+@app.route('/drivers', methods=['GET', 'POST'])
+def drivers():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add' in request.form:
+                conn.execute("INSERT INTO drivers (name, phone, license_number) VALUES (?, ?, ?)", (request.form['name'], request.form['phone'], request.form['license']))
+                conn.commit()
+                return redirect('/drivers')
+        drv = conn.execute("SELECT * FROM drivers").fetchall()
+
+    rows = "".join([f"<tr><td>{d[0]}</td><td><b>{d[1]}</b></td><td>{d[2]}</td><td>{d[3]}</td><td><a href='/drivers/delete/{d[0]}' class='btn btn-danger btn-sm' onclick='return confirm(\"Əminsiniz?\")'>🗑️ {t['delete']}</a></td></tr>" for d in drv])
+    content = f'''
+    <h2 class="text-warning mb-4">🚚 {t['drivers']}</h2>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Sürücü Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add" value="1">
+            <div class="row">
+                <div class="col-md-4 mb-2"><label>Ad Soyad</label><input type="text" name="name" class="form-control" required></div>
+                <div class="col-md-4 mb-2"><label>Telefon</label><input type="text" name="phone" class="form-control" required></div>
+                <div class="col-md-4 mb-2"><label>Vəsiqə №</label><input type="text" name="license" class="form-control" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
+        </form>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th><th>{t['license']}</th><th>{t['action']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+    return render_page(content, t, lang)
+
+@app.route('/drivers/delete/<int:id>')
+def delete_driver(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM drivers WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/drivers')
+
+@app.route('/vehicles', methods=['GET', 'POST'])
+def vehicles():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add' in request.form:
+                conn.execute("INSERT INTO vehicles (plate_number, capacity_m3, driver_id, tare_weight_kg) VALUES (?, ?, ?, ?)",
+                             (request.form['plate'], float(request.form['cap']), request.form['driver_id'], float(request.form['tare'])))
+                conn.commit()
+                return redirect('/vehicles')
+        veh = conn.execute('''
+            SELECT v.id, v.plate_number, v.capacity_m3, d.name, v.tare_weight_kg 
+            FROM vehicles v LEFT JOIN drivers d ON v.driver_id = d.id
+        ''').fetchall()
+        drivers = conn.execute("SELECT id, name FROM drivers").fetchall()
+
+    driver_opts = "".join([f"<option value='{d[0]}'>{d[1]}</option>" for d in drivers])
+    rows = "".join([f"<tr><td>{v[0]}</td><td><b>{v[1]}</b></td><td>{v[2]} m³</td><td>{v[3] or 'Təyin edilməyib'}</td><td class='text-warning'>{v[4]:,.0f} kq</td><td><a href='/vehicles/delete/{v[0]}' class='btn btn-danger btn-sm' onclick='return confirm(\"Əminsiniz?\")'>🗑️ {t['delete']}</a></td></tr>" for v in veh])
+    
+    content = f'''
+    <h2 class="text-warning mb-4">🚛 {t['vehicles']}</h2>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Mikser (Maşın) Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-2"><label>Dövlət Nömrəsi</label><input type="text" name="plate" class="form-control" placeholder="10-AA-201" required></div>
+                <div class="col-md-3 mb-2"><label>Həcm (m³)</label><input type="number" step="0.5" name="cap" class="form-control" value="10.0" required></div>
+                <div class="col-md-3 mb-2"><label>Sürücü</label><select name="driver_id" class="form-select">{driver_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>Tara (Boş Çəki kq)</label><input type="number" step="10" name="tare" class="form-control" value="12000" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
+        </form>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Nömrə</th><th>Həcm</th><th>Sürücü</th><th>Tara</th><th>{t['action']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+    return render_page(content, t, lang)
+
+@app.route('/vehicles/delete/<int:id>')
+def delete_vehicle(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM vehicles WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/vehicles')
+
+@app.route('/clients', methods=['GET', 'POST'])
+def clients():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add' in request.form:
+                conn.execute("INSERT INTO clients (name, contact, address) VALUES (?, ?, ?)", (request.form['name'], request.form['contact'], request.form['address']))
+                conn.commit()
+                return redirect('/clients')
+        cl = conn.execute("SELECT * FROM clients").fetchall()
+
+    rows = "".join([f"<tr><td>{c[0]}</td><td><b>{c[1]}</b></td><td>{c[2]}</td><td>{c[3]}</td><td><a href='/clients/delete/{c[0]}' class='btn btn-danger btn-sm' onclick='return confirm(\"Əminsiniz?\")'>🗑️ {t['delete']}</a></td></tr>" for c in cl])
+    content = f'''
+    <h2 class="text-warning mb-4">🏢 {t['clients']}</h2>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Müştəri Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add" value="1">
+            <div class="row">
+                <div class="col-md-4 mb-2"><label>Firma Adı</label><input type="text" name="name" class="form-control" required></div>
+                <div class="col-md-4 mb-2"><label>Əlaqə Tel</label><input type="text" name="contact" class="form-control" required></div>
+                <div class="col-md-4 mb-2"><label>Ünvan</label><input type="text" name="address" class="form-control" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
+        </form>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Müştəri</th><th>Tel</th><th>Ünvan</th><th>{t['action']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+    return render_page(content, t, lang)
+
+@app.route('/clients/delete/<int:id>')
+def delete_client(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM clients WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/clients')
+
+@app.route('/suppliers', methods=['GET', 'POST'])
+def suppliers():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add' in request.form:
+                conn.execute("INSERT INTO suppliers (name, contact) VALUES (?, ?)", (request.form['name'], request.form['contact']))
+                conn.commit()
+                return redirect('/suppliers')
+        sup = conn.execute("SELECT * FROM suppliers").fetchall()
+
+    rows = "".join([f"<tr><td>{s[0]}</td><td><b>{s[1]}</b></td><td>{s[2]}</td><td><a href='/suppliers/delete/{s[0]}' class='btn btn-danger btn-sm' onclick='return confirm(\"Əminsiniz?\")'>🗑️ {t['delete']}</a></td></tr>" for s in sup])
+    content = f'''
+    <h2 class="text-warning mb-4">🏭 {t['suppliers']}</h2>
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Təchizatçı Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add" value="1">
+            <div class="row">
+                <div class="col-md-6 mb-2"><label>Təchizatçı Adı</label><input type="text" name="name" class="form-control" required></div>
+                <div class="col-md-6 mb-2"><label>Əlaqə</label><input type="text" name="contact" class="form-control" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
+        </form>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Təchizatçı</th><th>Tel</th><th>{t['action']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+    return render_page(content, t, lang)
+
+@app.route('/suppliers/delete/<int:id>')
+def delete_supplier(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM suppliers WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/suppliers')
+
+# --- SCADA & OTHER MODULES ---
 @app.route('/scada')
 def scada():
     lang = get_lang()
@@ -1219,6 +1274,109 @@ def scada():
     </div>'''
     return render_page(content, t, lang)
 
+@app.route('/modbus', methods=['GET', 'POST'])
+def modbus():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'save_config' in request.form:
+                conn.execute("UPDATE modbus_settings SET plc_ip=?, plc_port=?, slave_id=? WHERE id=1",
+                           (request.form['plc_ip'], request.form['plc_port'], request.form['slave_id']))
+                conn.commit()
+            elif 'add_tag' in request.form:
+                try:
+                    conn.execute("INSERT OR REPLACE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
+                               (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
+                    conn.commit()
+                except Exception:
+                    pass
+            return redirect('/modbus')
+        cfg = conn.execute("SELECT plc_ip, plc_port, slave_id FROM modbus_settings LIMIT 1").fetchone() or ('192.168.1.50', 502, 1)
+        regs = conn.execute("SELECT id, tag_name, data_type, address, description FROM modbus_registers ORDER BY address").fetchall()
+
+    rows = "".join([f"<tr><td>{r[0]}</td><td><b>{r[1]}</b></td><td><span class='badge bg-warning text-dark'>{r[2]}</span></td><td class='text-warning'>{r[3]}</td><td>{r[4]}</td><td><a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm'>🗑️</a></td></tr>" for r in regs])
+    content = f'''
+    <h2 class="text-warning mb-4">🔌 {t['modbus']}</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card p-4 shadow border-info">
+                <h4 class="text-info mb-3">🌐 Connection</h4>
+                <form method="POST">
+                    <input type="hidden" name="save_config" value="1">
+                    <div class="mb-2"><label>PLC IP</label><input type="text" name="plc_ip" class="form-control" value="{cfg[0]}" required></div>
+                    <div class="mb-2"><label>Port</label><input type="number" name="plc_port" class="form-control" value="{cfg[1]}" required></div>
+                    <div class="mb-3"><label>Slave ID</label><input type="number" name="slave_id" class="form-control" value="{cfg[2]}" required></div>
+                    <button type="submit" class="btn btn-info w-100 fw-bold">{t['save']}</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card p-4 shadow border-warning">
+                <h4 class="text-warning mb-3">➕ Add Tag</h4>
+                <form method="POST">
+                    <input type="hidden" name="add_tag" value="1">
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><label>Tag Name</label><input type="text" name="tag_name" class="form-control" required></div>
+                        <div class="col-md-6 mb-2"><label>Type</label><select name="data_type" class="form-select"><option value="REGISTER">REGISTER</option><option value="BIT">BIT</option></select></div>
+                        <div class="col-md-6 mb-2"><label>Address</label><input type="number" name="address" class="form-control" required></div>
+                        <div class="col-md-6 mb-2"><label>Description</label><input type="text" name="description" class="form-control"></div>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">{t['add']}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Tag</th><th>Type</th><th>Addr</th><th>Desc</th><th>Action</th></tr></thead><tbody>{rows}</tbody></table></div>
+    '''
+    return render_page(content, t, lang)
+
+@app.route('/modbus/delete/<int:id>')
+def delete_modbus(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM modbus_registers WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/modbus')
+
+@app.route('/read_write', methods=['GET', 'POST'])
+def read_write():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    msg = ""
+    if request.method == 'POST':
+        action = request.form.get('action_type')
+        addr = request.form.get('address')
+        msg = f"✅ Ünvan {addr} üzərində {action} əmri icra olundu."
+
+    content = f'''
+    <h2 class="text-warning mb-4">{t['rw_page']}</h2>
+    {f'<div class="alert alert-success">{msg}</div>' if msg else ''}
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card p-4 shadow border-success mb-3">
+                <h4 class="text-success mb-3">⚡ Bit Komandaları (Set, Reset, Toggle)</h4>
+                <form method="POST">
+                    <div class="mb-2"><label>Bit Ünvanı</label><input type="number" name="address" class="form-control" required></div>
+                    <div class="mb-3"><label>Əməliyyat</label><select name="action_type" class="form-select"><option value="SET">SET (1)</option><option value="RESET">RESET (0)</option><option value="TOGGLE">TOGGLE</option></select></div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">🚀 Göndər</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card p-4 shadow border-warning">
+                <h4 class="text-warning mb-3">✍️ Registrə Yaz</h4>
+                <form method="POST">
+                    <input type="hidden" name="action_type" value="WRITE_REG">
+                    <div class="mb-2"><label>Registr Ünvanı</label><input type="number" name="address" class="form-control" required></div>
+                    <div class="mb-3"><label>Dəyər</label><input type="number" step="any" name="value" class="form-control" required></div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">💾 Yaz</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
 @app.route('/company')
 def company():
     lang = get_lang()
@@ -1233,56 +1391,6 @@ def company():
         <p><b>{t['phone']}:</b> {c[3] if c else ''}</p>
         <p><b>{t['tax_no']}:</b> {c[4] if c else ''}</p>
     </div>'''
-    return render_page(content, t, lang)
-
-@app.route('/operators')
-def operators():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        ops = conn.execute("SELECT * FROM operators").fetchall()
-    rows = "".join([f"<tr><td>{o[0]}</td><td><b>{o[1]}</b></td><td>{o[2]}</td></tr>" for o in ops])
-    content = f'''<h2 class="text-warning mb-4">👷 {t['operators']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th></tr></thead><tbody>{rows}</tbody></table></div>'''
-    return render_page(content, t, lang)
-
-@app.route('/drivers')
-def drivers():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        drv = conn.execute("SELECT * FROM drivers").fetchall()
-    rows = "".join([f"<tr><td>{d[0]}</td><td><b>{d[1]}</b></td><td>{d[2]}</td><td>{d[3]}</td></tr>" for d in drv])
-    content = f'''<h2 class="text-warning mb-4">🚚 {t['drivers']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th><th>{t['license']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
-    return render_page(content, t, lang)
-
-@app.route('/vehicles')
-def vehicles():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        veh = conn.execute("SELECT * FROM vehicles").fetchall()
-    rows = "".join([f"<tr><td>{v[0]}</td><td><b>{v[1]}</b></td><td>{v[2]} m³</td><td>{v[4]} kg</td></tr>" for v in veh])
-    content = f'''<h2 class="text-warning mb-4">🚛 {t['vehicles']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Dövlət Nömrəsi</th><th>Həcm</th><th>Tara (Boş Çəki)</th></tr></thead><tbody>{rows}</tbody></table></div>'''
-    return render_page(content, t, lang)
-
-@app.route('/clients')
-def clients():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        cl = conn.execute("SELECT * FROM clients").fetchall()
-    rows = "".join([f"<tr><td>{c[0]}</td><td><b>{c[1]}</b></td><td>{c[2]}</td><td>{c[3]}</td></tr>" for c in cl])
-    content = f'''<h2 class="text-warning mb-4">🏢 {t['clients']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>{t['client']}</th><th>Tel</th><th>{t['address']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
-    return render_page(content, t, lang)
-
-@app.route('/suppliers')
-def suppliers():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        sup = conn.execute("SELECT * FROM suppliers").fetchall()
-    rows = "".join([f"<tr><td>{s[0]}</td><td><b>{s[1]}</b></td><td>{s[2]}</td></tr>" for s in sup])
-    content = f'''<h2 class="text-warning mb-4">🏭 {t['suppliers']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Təchizatçı</th><th>Tel</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
 
 if __name__ == '__main__':
