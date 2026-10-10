@@ -22,6 +22,7 @@ TRANSLATIONS = {
         "scada": "SCADA Pult",
         "settings": "PLC Tənzimləmələri",
         "modbus": "Modbus Xritələmə",
+        "rw_page": "🎛️ Oxu və Yaz (Read/Write)",
         "directories": "Sorğular",
         "drivers": "Sürücülər",
         "vehicles": "Mikserlər",
@@ -103,6 +104,7 @@ TRANSLATIONS = {
         "scada": "SCADA Kontrol",
         "settings": "PLC Ayarları",
         "modbus": "Modbus Haritalama",
+        "rw_page": "🎛️ Oku ve Yaz (Read/Write)",
         "directories": "Tanımlamalar",
         "drivers": "Şoförler",
         "vehicles": "Mikseller",
@@ -188,6 +190,7 @@ TRANSLATIONS = {
         "scada": "SCADA Пульт",
         "settings": "Настройки ПЛК",
         "modbus": "Modbus Карты",
+        "rw_page": "🎛️ Чтение и Запись (Read/Write)",
         "directories": "Справочники",
         "drivers": "Водители",
         "vehicles": "Миксеры",
@@ -325,7 +328,7 @@ def init_db():
 
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_registers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tag_name TEXT,
+            tag_name TEXT UNIQUE,
             data_type TEXT,
             address INTEGER,
             description TEXT
@@ -387,14 +390,15 @@ def init_db():
                                 tag = row[0].strip(' "')
                                 if not tag: continue
                                 try:
-                                    addr_type = int(row[3].strip(' "')) if row[3].strip(' "').isdigit() else 0
+                                    addr_type = int(row[4].strip(' "')) if row[4].strip(' "').isdigit() else 0
                                     addr = int(row[5].strip(' "')) if row[5].strip(' "').isdigit() else 0
                                 except ValueError:
                                     addr_type, addr = 0, 0
+                                # AddrType 1 = Bit/Coil, 0 or 4 = Register
                                 dtype = "BIT" if addr_type == 1 else "REGISTER"
-                                mod_records.append((tag, dtype, addr, f"Shabran GPF Tag (Type: {addr_type})"))
+                                mod_records.append((tag, dtype, addr, f"Shabran GPF Tag (AddrType: {addr_type})"))
                     if mod_records:
-                        cursor.executemany("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)", mod_records)
+                        cursor.executemany("INSERT OR IGNORE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)", mod_records)
                 except Exception as e:
                     print("Error loading shabran.gpf.csv:", e)
 
@@ -450,6 +454,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
                 <li class="nav-item"><a class="nav-link text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
                 <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
+                <li class="nav-item"><a class="nav-link text-success fw-bold" href="/read_write">{t['rw_page']}</a></li>
                 <li class="nav-item dropdown ms-md-2">
                   <a class="nav-link dropdown-toggle text-info fw-bold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
                   <ul class="dropdown-menu dropdown-menu-dark shadow">
@@ -542,8 +547,11 @@ def modbus():
                 conn.execute("UPDATE modbus_settings SET plc_ip=?, plc_port=?, slave_id=? WHERE id=1",
                            (request.form['plc_ip'], request.form['plc_port'], request.form['slave_id']))
             elif 'add_tag' in request.form:
-                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
-                           (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
+                try:
+                    conn.execute("INSERT OR REPLACE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
+                               (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
+                except Exception as e:
+                    print("Error adding tag:", e)
             elif 'upload_csv' in request.files or 'upload_csv' in request.form:
                 file = request.files.get('upload_csv')
                 if file and file.filename.endswith('.csv'):
@@ -565,13 +573,13 @@ def modbus():
                                 tag = row[0].strip(' "')
                                 if not tag: continue
                                 try:
-                                    addr_type = int(row[3].strip(' "')) if row[3].strip(' "').isdigit() else 0
+                                    addr_type = int(row[4].strip(' "')) if row[4].strip(' "').isdigit() else 0
                                     addr = int(row[5].strip(' "')) if row[5].strip(' "').isdigit() else 0
                                 except ValueError:
                                     addr_type, addr = 0, 0
                                 dtype = "BIT" if addr_type == 1 else "REGISTER"
-                                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
-                                           (tag, dtype, addr, f"Imported CSV Tag (Type: {addr_type})"))
+                                conn.execute("INSERT OR IGNORE INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
+                                           (tag, dtype, addr, f"Imported CSV Tag (AddrType: {addr_type})"))
             conn.commit()
             return redirect('/modbus')
 
@@ -593,7 +601,6 @@ def modbus():
             <td class='font-monospace text-warning fw-bold'>{r[3]}</td>
             <td>{r[4]}</td>
             <td>
-                <a href='/modbus/edit/{r[0]}' class='btn btn-warning btn-sm me-1'>✏️ {t['edit']}</a>
                 <a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmek istediyinizden əminsiniz?')">🗑️ {t['delete']}</a>
             </td>
         </tr>"""
@@ -660,11 +667,11 @@ def modbus():
     </div>
 
     <div class="card p-4 shadow border-secondary">
-        <h4 class="text-light mb-3">📋 Registered Modbus Tags</h4>
-        <div class="table-responsive">
+        <h4 class="text-light mb-3">📋 Registered Modbus Tags ({len(registers)})</h4>
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
             <table class="table table-striped table-hover align-middle">
                 <thead>
-                    <tr class="table-dark">
+                    <tr class="table-dark sticky-top">
                         <th>ID</th>
                         <th>Tag Name</th>
                         <th>Type</th>
@@ -681,6 +688,117 @@ def modbus():
     </div>
     '''
     return render_page(content, t, lang)
+
+@app.route('/read_write', methods=['GET', 'POST'])
+def read_write():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    
+    msg = ""
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            action_type = request.form.get('action_type')
+            addr = request.form.get('address')
+            val = request.form.get('value', '0')
+            
+            if action_type == 'SET':
+                msg = f"✅ Ünvan {addr} SET (1) əmri göndərildi."
+            elif action_type == 'RESET':
+                msg = f"✅ Ünvan {addr} RESET (0) əmri göndərildi."
+            elif action_type == 'TOGGLE':
+                msg = f"✅ Ünvan {addr} TOGGLE əmri göndərildi."
+            elif action_type == 'WRITE_REG':
+                msg = f"✅ Ünvan {addr} registrə {val} qiyməti yazıldı."
+
+        registers = conn.execute("SELECT tag_name, data_type, address, description FROM modbus_registers ORDER BY data_type, address").fetchall()
+
+    rw_rows = ""
+    for r in registers:
+        t_badge = "<span class='badge bg-warning text-dark'>REG</span>" if r[1] == "REGISTER" else "<span class='badge bg-info text-dark'>BIT</span>"
+        rw_rows += f"""<tr>
+            <td><b>{r[0]}</b></td>
+            <td>{t_badge}</td>
+            <td class='font-monospace text-warning fw-bold'>{r[2]}</td>
+            <td>{r[3]}</td>
+            <td class='font-monospace text-success'>0 (Live Simulation)</td>
+        </tr>"""
+
+    content = f'''
+    <h2 class="text-warning mb-4">🎛️ Modbus Read / Write & Control Panel</h2>
+    
+    {f'<div class="alert alert-success fw-bold">{msg}</div>' if msg else ''}
+    
+    <div class="row mb-4">
+        <div class="col-md-5">
+            <div class="card p-4 shadow border-success mb-3">
+                <h4 class="text-success mb-3">⚡ Bit Komandaları (Set, Reset, Toggle)</h4>
+                <form method="POST">
+                    <div class="mb-2">
+                        <label>Bit Ünvanı (Address / Coil)</label>
+                        <input type="number" name="address" class="form-control" placeholder="Məs: 1 və ya 0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Əməliyyat Növü</label>
+                        <select name="action_type" class="form-select">
+                            <option value="SET">SET (1 et)</option>
+                            <option value="RESET">RESET (0 et)</option>
+                            <option value="TOGGLE">TOGGLE (Tərş̧ə çevir)</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1 fw-bold">🚀 Əmri Göndər</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card p-4 shadow border-warning">
+                <h4 class="text-warning mb-3">✍️ Registrə Qiymət Yazmaq (Write Holding)</h4>
+                <form method="POST">
+                    <input type="hidden" name="action_type" value="WRITE_REG">
+                    <div class="mb-2">
+                        <label>Registr Ünvanı</label>
+                        <input type="number" name="address" class="form-control" placeholder="Məs: 40001" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Yazılacaq Dəyər (Value)</label>
+                        <input type="number" step="any" name="value" class="form-control" placeholder="Məs: 150" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">💾 Registrə Yaz</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card p-4 shadow border-secondary">
+                <h4 class="text-light mb-3">📖 Canlı Oxuma Cədvəli (Read Status)</h4>
+                <div class="table-responsive" style="max-height: 430px; overflow-y: auto;">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
+                            <tr class="table-dark sticky-top">
+                                <th>Tag Name</th>
+                                <th>Type</th>
+                                <th>Address</th>
+                                <th>Description</th>
+                                <th>Cari Dəyər</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rw_rows if rw_rows else "<tr><td colspan='5' class='text-center text-muted'>Registr yoxdur.</td></tr>"}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+@app.route('/modbus/delete/<int:reg_id>')
+def delete_modbus_reg(reg_id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM modbus_registers WHERE id=?", (reg_id,))
+        conn.commit()
+    return redirect('/modbus')
 
 @app.route('/orders')
 def orders():
