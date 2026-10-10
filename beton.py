@@ -20,6 +20,7 @@ TRANSLATIONS = {
         "reports": "Hesabatlar və Axtarış",
         "scada": "SCADA Pult",
         "settings": "PLC Tənzimləmələri",
+        "modbus": "Modbus Xritələmə",
         "directories": "Sorğular",
         "drivers": "Sürücülər",
         "vehicles": "Mikserlər",
@@ -33,7 +34,7 @@ TRANSLATIONS = {
         "home_orders": "📦 Sifarişlər",
         "delete": "Sil", "edit": "Redaktə", "add": "Əlavə et", "save": "Yadda saxla",
         "print_version": "Çap Versiyası", "export_csv": "📥 CSV/Excel İxrac", "back": "Geri qayıt", "nakladnoy": "Nəqliyyat Qaiməsi",
-        "sub_title": "SCADA və Beton Zavod İdarəetmə Sistemi (Daşınma Uçotu, Anbar, Reseptlər)",
+        "sub_title": "SCADA və Beton Zavod İdarəetmə Sistemi (Daşınma Uçotu, Anbar, Reseptlər, Modbus)",
         "client": "Müştəri (Alıcı)",
         "mixer": "Mikser (Maşın)",
         "recipe": "Resept / Beton Markası",
@@ -100,6 +101,7 @@ TRANSLATIONS = {
         "reports": "Raporlar ve Arama",
         "scada": "SCADA Kontrol",
         "settings": "PLC Ayarları",
+        "modbus": "Modbus Haritalama",
         "directories": "Tanımlamalar",
         "drivers": "Şoförler",
         "vehicles": "Mikseller",
@@ -113,7 +115,7 @@ TRANSLATIONS = {
         "home_orders": "📦 Siparişler",
         "delete": "Sil", "edit": "Düzenle", "add": "Ekle", "save": "Kaydet",
         "print_version": "Yazdırılabilir Sayfa", "export_csv": "📥 CSV/Excel İhracat", "back": "Geri Dön", "nakladnoy": "Sevk İrsaliyesi",
-        "sub_title": "SCADA ve Beton Santral Yönetim Sistemi (Taşıma Takibi, Stok, Reçeteler)",
+        "sub_title": "SCADA ve Beton Santral Yönetim Sistemi (Taşıma Takibi, Stok, Reçeteler, Modbus)",
         "client": "Müşteri (Firma)",
         "mixer": "Mikser (Araç)",
         "recipe": "Reçete / Beton Sınıfı",
@@ -180,6 +182,7 @@ TRANSLATIONS = {
         "reports": "Отчеты и Поиск",
         "scada": "SCADA Пульт",
         "settings": "Настройки ПЛК",
+        "modbus": "Modbus Карты",
         "directories": "Справочники",
         "drivers": "Водители",
         "vehicles": "Миксеры",
@@ -193,7 +196,7 @@ TRANSLATIONS = {
         "home_orders": "📦 Заказы",
         "delete": "Удалить", "edit": "Править", "add": "Добавить", "save": "Сохранить",
         "print_version": "Версия для печати", "export_csv": "📥 Экспорт в CSV/Excel", "back": "Назад", "nakladnoy": "Товарно-Транспортная Накладная",
-        "sub_title": "SCADA и Система Управления Бетонным Заводом (Учет Перевозок Водителей, Склад, Рецепты)",
+        "sub_title": "SCADA и Система Управления Бетонным Заводом (Учет Перевозок Водителей, Склад, Рецепты, Modbus)",
         "client": "Клиент (Заказчик)",
         "mixer": "Миксер (Машина)",
         "recipe": "Рецепт / Марка Бетона",
@@ -235,7 +238,8 @@ TRANSLATIONS = {
         "ready": "Готов", "waiting": "Ожидание",
         "phone": "Телефон", "license": "Водительское Удостоверение", "address": "Адрес", "tax_no": "ИНН/VÖEN",
         "company_name": "Название Предприятия",
-        "close": "Закрыть", "print": "🖨️ Печать",
+        "close": "Закрыть",
+        "print": "🖨️ Печать",
         "delivered_by": "Сдал (Оператор)",
         "received_by": "Принял (Заказчик)",
         "product_name": "Наименование и Марка Продукции",
@@ -304,6 +308,21 @@ def init_db():
             quantity_kg REAL, partner_name TEXT, note TEXT
         )''')
 
+        conn.execute('''CREATE TABLE IF NOT EXISTS modbus_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            plc_ip TEXT DEFAULT '192.168.1.50',
+            plc_port INTEGER DEFAULT 502,
+            slave_id INTEGER DEFAULT 1
+        )''')
+
+        conn.execute('''CREATE TABLE IF NOT EXISTS modbus_registers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tag_name TEXT,
+            data_type TEXT,
+            address INTEGER,
+            description TEXT
+        )''')
+
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM company_info")
         if cursor.fetchone()[0] == 0:
@@ -348,6 +367,26 @@ def init_db():
             ]
             cursor.executemany("INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", recipes_data)
             
+            # Populate Modbus registers from shabran.gpf.csv dataset
+            import pandas as pd
+            try:
+                mod_df = pd.read_csv('shabran.gpf.csv', encoding='utf-16le', sep='\t')
+                mod_records = []
+                for _, row in mod_df.iterrows():
+                    tag = str(row.iloc[0]).strip()
+                    addr_type = int(row.iloc[3]) if pd.notnull(row.iloc[3]) else 0
+                    addr = int(row.iloc[5]) if pd.notnull(row.iloc[5]) else 0
+                    dtype = "BIT" if addr_type == 1 else "REGISTER"
+                    mod_records.append((tag, dtype, addr, f"Shabran GPF Tag (Type: {addr_type})"))
+                
+                cursor.execute("SELECT COUNT(*) FROM modbus_registers")
+                if cursor.fetchone()[0] == 0:
+                    cursor.executemany("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)", mod_records)
+            except Exception as e:
+                print("Error loading shabran.gpf.csv:", e)
+
+            cursor.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
+
             now = datetime.now()
             orders_data = [
                 ((now - timedelta(days=3)).isoformat(), 1, 1, 1, 10.0, 110.0, 1),
@@ -397,6 +436,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link" href="/reports">{t['reports']}</a></li>
                 <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
                 <li class="nav-item"><a class="nav-link text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
+                <li class="nav-item"><a class="nav-link text-danger fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
                 <li class="nav-item dropdown ms-md-2">
                   <a class="nav-link dropdown-toggle text-info fw-bold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
                   <ul class="dropdown-menu dropdown-menu-dark shadow">
@@ -477,6 +517,104 @@ def index():
         </div>
     </div>'''
     return render_page(content, t, lang)
+
+@app.route('/modbus', methods=['GET', 'POST'])
+def modbus():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'save_config' in request.form:
+                conn.execute("UPDATE modbus_settings SET plc_ip=?, plc_port=?, slave_id=? WHERE id=1",
+                             (request.form['plc_ip'], request.form['plc_port'], request.form['slave_id']))
+            elif 'add_tag' in request.form:
+                conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
+                             (request.form['tag_name'], request.form['data_type'], request.form['address'], request.form['description']))
+            conn.commit()
+            return redirect('/modbus')
+
+        cfg = conn.execute("SELECT plc_ip, plc_port, slave_id FROM modbus_settings LIMIT 1").fetchone()
+        if not cfg:
+            conn.execute("INSERT INTO modbus_settings (plc_ip, plc_port, slave_id) VALUES ('192.168.1.50', 502, 1)")
+            conn.commit()
+            cfg = ('192.168.1.50', 502, 1)
+
+        registers = conn.execute("SELECT id, tag_name, data_type, address, description FROM modbus_registers ORDER BY data_type, address").fetchall()
+
+    rows = ""
+    for r in registers:
+        type_badge = "<span class='badge bg-warning text-dark'>REGISTER</span>" if r[2] == "REGISTER" else "<span class='badge bg-info text-dark'>BIT (Coil)</span>"
+        rows += f"""<tr>
+            <td>{r[0]}</td>
+            <td><b>{r[1]}</b></td>
+            <td>{type_badge}</td>
+            <td class='font-monospace text-warning fw-bold'>{r[3]}</td>
+            <td>{r[4]}</td>
+            <td><a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm'>🗑️ {t['delete']}</a></td>
+        </tr>"""
+
+    content = f'''
+    <h2 class="text-warning mb-4">🔌 Modbus TCP Configuration & Register Mapping (Shabran GPF Dataset: {len(registers)} Tags)</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-5">
+            <div class="card p-4 shadow mb-3 border-info">
+                <h4 class="text-info mb-3">🌐 Connection Settings</h4>
+                <form method="POST">
+                    <input type="hidden" name="save_config" value="1">
+                    <div class="mb-2"><label>PLC IP Address</label><input type="text" name="plc_ip" class="form-control" value="{cfg[0]}" required></div>
+                    <div class="mb-2"><label>Modbus Port</label><input type="number" name="plc_port" class="form-control" value="{cfg[1]}" required></div>
+                    <div class="mb-3"><label>Slave / Unit ID</label><input type="number" name="slave_id" class="form-control" value="{cfg[2]}" required></div>
+                    <button type="submit" class="btn btn-info w-100 fw-bold">{t['save']}</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card p-4 shadow mb-3 border-warning">
+                <h4 class="text-warning mb-3">➕ Add Tag / Address</h4>
+                <form method="POST">
+                    <input type="hidden" name="add_tag" value="1">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6"><label>Tag Name</label><input type="text" name="tag_name" class="form-control" placeholder="e.g. Bunker1_Weight" required></div>
+                        <div class="col-md-6"><label>Type</label>
+                            <select name="data_type" class="form-select">
+                                <option value="REGISTER">REGISTER (Holding / 16-bit)</option>
+                                <option value="BIT">BIT (Coil / Discrete)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4"><label>Address Offset</label><input type="number" name="address" class="form-control" placeholder="e.g. 40001 or 0" required></div>
+                        <div class="col-md-8"><label>Description</label><input type="text" name="description" class="form-control" placeholder="e.g. Bunker 1 Load Cell Value"></div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">{t['add']}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-3 shadow">
+        <h4 class="text-white mb-3">📑 Mapped Registers & Bits</h4>
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-striped table-bordered align-middle text-center mb-0">
+                <thead class="table-dark sticky-top">
+                    <tr><th>ID</th><th>Tag Name</th><th>Type</th><th>Address</th><th>Description</th><th>{t['action']}</th></tr>
+                </thead>
+                <tbody>{rows if rows else "<tr><td colspan='6' class='text-muted py-3'>No registers defined yet</td></tr>"}</tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+@app.route('/modbus/delete/<int:id>')
+def delete_modbus_tag(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM modbus_registers WHERE id = ?", (id,))
+        conn.commit()
+    return redirect('/modbus')
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
@@ -1654,7 +1792,7 @@ def scada():
     }}
     function emergencyStop() {{
         document.getElementById("processStatus").innerText = "🛑 ESTOP!";
-        document.getElementById("progressBar").className = "progress-bar bg-danger fw-bold";
+        document.getElementById("progressBar").className = "progress-bg bg-danger fw-bold";
         document.getElementById("progressBar").innerText = "STOP";
         logMessage("🚨 E-STOP!");
     }}
