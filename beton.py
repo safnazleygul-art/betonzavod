@@ -285,10 +285,6 @@ def init_db():
         conn.execute('''CREATE TABLE IF NOT EXISTS vehicles (
             id INTEGER PRIMARY KEY AUTOINCREMENT, plate_number TEXT, capacity_m3 REAL, driver_id INTEGER, tare_weight_kg REAL DEFAULT 12000.0
         )''')
-        try:
-            conn.execute("ALTER TABLE vehicles ADD COLUMN tare_weight_kg REAL DEFAULT 12000.0")
-        except sqlite3.OperationalError:
-            pass
 
         conn.execute('''CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contact TEXT, address TEXT)''')
         conn.execute('''CREATE TABLE IF NOT EXISTS suppliers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, contact TEXT)''')
@@ -307,16 +303,6 @@ def init_db():
 
         conn.execute('''CREATE TABLE IF NOT EXISTS stock (
             id INTEGER PRIMARY KEY AUTOINCREMENT, material_type TEXT, code_name TEXT, current_kg REAL, max_capacity_kg REAL
-        )''')
-
-        conn.execute('''CREATE TABLE IF NOT EXISTS stock_income (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, supplier_id INTEGER, 
-            material_code TEXT, quantity_kg REAL, note TEXT
-        )''')
-
-        conn.execute('''CREATE TABLE IF NOT EXISTS stock_movements (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, operation_type TEXT, material_name TEXT, 
-            quantity_kg REAL, partner_name TEXT, note TEXT
         )''')
 
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_settings (
@@ -394,7 +380,6 @@ def init_db():
                                     addr = int(row[5].strip(' "')) if row[5].strip(' "').isdigit() else 0
                                 except ValueError:
                                     addr_type, addr = 0, 0
-                                # AddrType 1 = Bit/Coil, 0 or 4 = Register
                                 dtype = "BIT" if addr_type == 1 else "REGISTER"
                                 mod_records.append((tag, dtype, addr, f"Shabran GPF Tag (AddrType: {addr_type})"))
                     if mod_records:
@@ -425,10 +410,6 @@ def get_lang():
 def set_lang(lang_code):
     if lang_code in TRANSLATIONS: session['lang'] = lang_code
     return redirect(request.referrer or url_for('index'))
-
-def get_all(table):
-    with sqlite3.connect(DB) as conn:
-        return conn.execute(f"SELECT * FROM {table}").fetchall()
 
 def render_page(content_html, t, current_lang, hide_nav=False):
     with sqlite3.connect(DB) as conn:
@@ -536,6 +517,331 @@ def index():
     </div>'''
     return render_page(content, t, lang)
 
+# --- ORDERS (SİPARİŞLƏR) + ADD & DELETE ---
+@app.route('/orders', methods=['GET', 'POST'])
+def orders():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add_order' in request.form:
+                conn.execute("""
+                    INSERT INTO orders (date, client_id, vehicle_id, recipe_id, volume_m3, price_per_m3, operator_id, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    datetime.now().isoformat(),
+                    request.form['client_id'],
+                    request.form['vehicle_id'],
+                    request.form['recipe_id'],
+                    float(request.form['volume_m3']),
+                    float(request.form['price_per_m3']),
+                    request.form['operator_id'],
+                    "İcrada"
+                ))
+                conn.commit()
+                return redirect('/orders')
+
+        orders_list = conn.execute('''
+            SELECT o.id, o.date, c.name, v.plate_number, r.name, o.volume_m3, o.price_per_m3, (o.volume_m3 * o.price_per_m3), op.name, o.status
+            FROM orders o
+            LEFT JOIN clients c ON o.client_id = c.id
+            LEFT JOIN vehicles v ON o.vehicle_id = v.id
+            LEFT JOIN recipes r ON o.recipe_id = r.id
+            LEFT JOIN operators op ON o.operator_id = op.id
+            ORDER BY o.date DESC
+        ''').fetchall()
+        
+        clients = conn.execute("SELECT id, name FROM clients").fetchall()
+        vehicles = conn.execute("SELECT id, plate_number FROM vehicles").fetchall()
+        recipes = conn.execute("SELECT id, name FROM recipes").fetchall()
+        operators = conn.execute("SELECT id, name FROM operators").fetchall()
+
+    rows = ""
+    for o in orders_list:
+        rows += f"""<tr>
+            <td>{o[0]}</td>
+            <td>{o[1][:16]}</td>
+            <td><b>{o[2]}</b></td>
+            <td>{o[3]}</td>
+            <td>{o[4]}</td>
+            <td>{o[5]} m³</td>
+            <td>{o[6]} AZN</td>
+            <td class='text-warning fw-bold'>{o[7]} AZN</td>
+            <td>{o[8]}</td>
+            <td><span class='badge bg-success'>{o[9]}</span></td>
+            <td>
+                <a href='/orders/delete/{o[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
+            </td>
+        </tr>"""
+
+    client_opts = "".join([f"<option value='{c[0]}'>{c[1]}</option>" for c in clients])
+    veh_opts = "".join([f"<option value='{v[0]}'>{v[1]}</option>" for v in vehicles])
+    rec_opts = "".join([f"<option value='{r[0]}'>{r[1]}</option>" for r in recipes])
+    op_opts = "".join([f"<option value='{op[0]}'>{op[1]}</option>" for op in operators])
+
+    content = f'''
+    <h2 class="text-warning mb-4">📦 {t['orders']}</h2>
+    
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Sifariş Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add_order" value="1">
+            <div class="row">
+                <div class="col-md-3 mb-2"><label>{t['client']}</label><select name="client_id" class="form-select">{client_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['mixer']}</label><select name="vehicle_id" class="form-select">{veh_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['recipe']}</label><select name="recipe_id" class="form-select">{rec_opts}</select></div>
+                <div class="col-md-3 mb-2"><label>{t['operator']}</label><select name="operator_id" class="form-select">{op_opts}</select></div>
+                <div class="col-md-4 mb-2"><label>{t['volume']} (m³)</label><input type="number" step="0.1" name="volume_m3" class="form-control" value="10.0" required></div>
+                <div class="col-md-4 mb-2"><label>{t['price_m3']}</label><input type="number" step="0.1" name="price_per_m3" class="form-control" value="110.0" required></div>
+                <div class="col-md-4 mb-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">{t['confirm_order']}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>{t['id']}</th>
+                        <th>{t['date']}</th>
+                        <th>{t['client']}</th>
+                        <th>{t['mixer']}</th>
+                        <th>{t['recipe']}</th>
+                        <th>{t['volume']}</th>
+                        <th>{t['price_m3']}</th>
+                        <th>{t['total_price']}</th>
+                        <th>{t['operator']}</th>
+                        <th>Status</th>
+                        <th>{t['action']}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows if rows else "<tr><td colspan='11' class='text-center text-muted'>Sifariş yoxdur.</td></tr>"}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+    return render_page(content, t, lang)
+
+@app.route('/orders/delete/<int:id>')
+def delete_order(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM orders WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/orders')
+
+# --- RECIPES (RESEPTLƏR) + ADD, EDIT, DELETE ---
+@app.route('/recipes', methods=['GET', 'POST'])
+def recipes():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'add_recipe' in request.form:
+                conn.execute("""
+                    INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    request.form['name'], float(request.form['b1']), float(request.form['b2']),
+                    float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
+                    float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
+                    float(request.form['water']), float(request.form['qatki'])
+                ))
+                conn.commit()
+                return redirect('/recipes')
+
+        recipes_list = conn.execute("SELECT * FROM recipes").fetchall()
+
+    rows = ""
+    for r in recipes_list:
+        rows += f"""<tr>
+            <td>{r[0]}</td>
+            <td><b>{r[1]}</b></td>
+            <td>{r[2]} kq</td>
+            <td>{r[3]} kq</td>
+            <td>{r[4]} kq</td>
+            <td>{r[5]} kq</td>
+            <td>{r[6]} kq</td>
+            <td>{r[7]} kq</td>
+            <td>{r[8]} kq</td>
+            <td>{r[9]} kq</td>
+            <td>{r[10]} lt</td>
+            <td>{r[11]} %</td>
+            <td>
+                <a href='/recipes/edit/{r[0]}' class='btn btn-warning btn-sm me-1'>✏️ {t['edit']}</a>
+                <a href='/recipes/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
+            </td>
+        </tr>"""
+
+    content = f'''
+    <h2 class="text-warning mb-4">🧪 {t['recipes']}</h2>
+    
+    <div class="card p-4 shadow mb-4 border-warning">
+        <h4 class="text-warning mb-3">➕ Yeni Resept Əlavə Et</h4>
+        <form method="POST">
+            <input type="hidden" name="add_recipe" value="1">
+            <div class="row">
+                <div class="col-md-4 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" placeholder="Məs: M-350 (B25)" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 1 (kq)</label><input type="number" step="1" name="b1" class="form-control" value="450" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 2 (kq)</label><input type="number" step="1" name="b2" class="form-control" value="350" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 3 (kq)</label><input type="number" step="1" name="b3" class="form-control" value="250" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 4 (kq)</label><input type="number" step="1" name="b4" class="form-control" value="150" required></div>
+                
+                <div class="col-md-2 mb-2"><label>Silo 1 (Sement)</label><input type="number" step="1" name="s1" class="form-control" value="300" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 2 (Sement)</label><input type="number" step="1" name="s2" class="form-control" value="100" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 3</label><input type="number" step="1" name="s3" class="form-control" value="0" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 4</label><input type="number" step="1" name="s4" class="form-control" value="0" required></div>
+                <div class="col-md-2 mb-2"><label>Su (lt)</label><input type="number" step="1" name="water" class="form-control" value="170" required></div>
+                <div class="col-md-2 mb-2"><label>Qatqı (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="1.5" required></div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold mt-2">💾 Resepti Yadda Saxla</button>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>ID</th>
+                        <th>Marka / Ad</th>
+                        <th>Bunker 1</th>
+                        <th>Bunker 2</th>
+                        <th>Bunker 3</th>
+                        <th>Bunker 4</th>
+                        <th>Silo 1</th>
+                        <th>Silo 2</th>
+                        <th>Silo 3</th>
+                        <th>Silo 4</th>
+                        <th>Su</th>
+                        <th>Qatqı</th>
+                        <th>{t['action']}</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+    </div>'''
+    return render_page(content, t, lang)
+
+@app.route('/recipes/edit/<int:id>', methods=['GET', 'POST'])
+def edit_recipe(id):
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            conn.execute("""
+                UPDATE recipes SET name=?, bunker_1=?, bunker_2=?, bunker_3=?, bunker_4=?, silo_1=?, silo_2=?, silo_3=?, silo_4=?, water=?, qatki_percent=?
+                WHERE id=?
+            """, (
+                request.form['name'], float(request.form['b1']), float(request.form['b2']),
+                float(request.form['b3']), float(request.form['b4']), float(request.form['s1']),
+                float(request.form['s2']), float(request.form['s3']), float(request.form['s4']),
+                float(request.form['water']), float(request.form['qatki']), id
+            ))
+            conn.commit()
+            return redirect('/recipes')
+        r = conn.execute("SELECT * FROM recipes WHERE id=?", (id,)).fetchone()
+
+    content = f'''
+    <h2 class="text-warning mb-4">✏️ Resepti Redaktə Et: {r[1]}</h2>
+    <div class="card p-4 shadow border-warning">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-4 mb-2"><label>Resept / Marka Adı</label><input type="text" name="name" class="form-control" value="{r[1]}" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 1 (kq)</label><input type="number" name="b1" class="form-control" value="{r[2]}" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 2 (kq)</label><input type="number" name="b2" class="form-control" value="{r[3]}" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 3 (kq)</label><input type="number" name="b3" class="form-control" value="{r[4]}" required></div>
+                <div class="col-md-2 mb-2"><label>Bunker 4 (kq)</label><input type="number" name="b4" class="form-control" value="{r[5]}" required></div>
+                
+                <div class="col-md-2 mb-2"><label>Silo 1</label><input type="number" name="s1" class="form-control" value="{r[6]}" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 2</label><input type="number" name="s2" class="form-control" value="{r[7]}" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 3</label><input type="number" name="s3" class="form-control" value="{r[8]}" required></div>
+                <div class="col-md-2 mb-2"><label>Silo 4</label><input type="number" name="s4" class="form-control" value="{r[9]}" required></div>
+                <div class="col-md-2 mb-2"><label>Su (lt)</label><input type="number" name="water" class="form-control" value="{r[10]}" required></div>
+                <div class="col-md-2 mb-2"><label>Qatqı (%)</label><input type="number" step="0.1" name="qatki" class="form-control" value="{r[11]}" required></div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-warning fw-bold px-4">{t['save']}</button>
+                <a href="/recipes" class="btn btn-secondary">{t['back']}</a>
+            </div>
+        </form>
+    </div>'''
+    return render_page(content, t, lang)
+
+@app.route('/recipes/delete/<int:id>')
+def delete_recipe(id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM recipes WHERE id=?", (id,))
+        conn.commit()
+    return redirect('/recipes')
+
+# --- STOCK (ANBAR) ---
+@app.route('/stock', methods=['GET', 'POST'])
+def stock():
+    lang = get_lang()
+    t = TRANSLATIONS[lang]
+    with sqlite3.connect(DB) as conn:
+        if request.method == 'POST':
+            if 'update_stock' in request.form:
+                conn.execute("UPDATE stock SET current_kg=? WHERE id=?", (float(request.form['current_kg']), request.form['stock_id']))
+                conn.commit()
+                return redirect('/stock')
+
+        stock_list = conn.execute("SELECT * FROM stock").fetchall()
+
+    rows = ""
+    for s in stock_list:
+        pct = min(100, max(0, int((s[3] / s[4]) * 100))) if s[4] > 0 else 0
+        color = "bg-success" if pct > 30 else "bg-warning" if pct > 15 else "bg-danger"
+        rows += f"""<tr>
+            <td>{s[0]}</td>
+            <td><span class='badge bg-secondary'>{s[1]}</span></td>
+            <td><b>{s[2]}</b></td>
+            <td class='text-warning fw-bold'>{s[3]:,.1f} kq</td>
+            <td>{s[4]:,.1f} kq</td>
+            <td style='width: 200px;'>
+                <div class='progress bg-dark' style='height: 20px;'>
+                    <div class='progress-bar {color}' role='progressbar' style='width: {pct}%;'>{pct}%</div>
+                </div>
+            </td>
+            <td>
+                <form method='POST' class='d-inline-flex gap-1'>
+                    <input type='hidden' name='update_stock' value='1'>
+                    <input type='hidden' name='stock_id' value='{s[0]}'>
+                    <input type='number' step='100' name='current_kg' class='form-control form-control-sm' value='{s[3]}' style='width: 100px;' required>
+                    <button type='submit' class='btn btn-warning btn-sm'>💾</button>
+                </form>
+            </td>
+        </tr>"""
+
+    content = f'''
+    <h2 class="text-warning mb-4">🪨 {t['stock']} (Silo & Bunker Balansları)</h2>
+    <div class="card p-4 shadow">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr class="table-dark">
+                        <th>ID</th>
+                        <th>Material Növü</th>
+                        <th>Silo / Bunker</th>
+                        <th>{t['current_stock']}</th>
+                        <th>{t['max_capacity']}</th>
+                        <th>Doluluk</th>
+                        <th>{t['action']}</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+    </div>'''
+    return render_page(content, t, lang)
+
+# --- MODBUS & REGISTERS ---
 @app.route('/modbus', methods=['GET', 'POST'])
 def modbus():
     lang = get_lang()
@@ -601,7 +907,7 @@ def modbus():
             <td class='font-monospace text-warning fw-bold'>{r[3]}</td>
             <td>{r[4]}</td>
             <td>
-                <a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmek istediyinizden əminsiniz?')">🗑️ {t['delete']}</a>
+                <a href='/modbus/delete/{r[0]}' class='btn btn-danger btn-sm' onclick="return confirm('Silmək istədiyinizdən əminsiniz?')">🗑️ {t['delete']}</a>
             </td>
         </tr>"""
 
@@ -689,6 +995,14 @@ def modbus():
     '''
     return render_page(content, t, lang)
 
+@app.route('/modbus/delete/<int:reg_id>')
+def delete_modbus_reg(reg_id):
+    with sqlite3.connect(DB) as conn:
+        conn.execute("DELETE FROM modbus_registers WHERE id=?", (reg_id,))
+        conn.commit()
+    return redirect('/modbus')
+
+# --- READ / WRITE CONTROL PANEL (SET, RESET, TOGGLE) ---
 @app.route('/read_write', methods=['GET', 'POST'])
 def read_write():
     lang = get_lang()
@@ -702,11 +1016,11 @@ def read_write():
             val = request.form.get('value', '0')
             
             if action_type == 'SET':
-                msg = f"✅ Ünvan {addr} SET (1) əmri göndərildi."
+                msg = f"✅ Ünvan {addr} SET (1) əmri uğurla göndərildi."
             elif action_type == 'RESET':
-                msg = f"✅ Ünvan {addr} RESET (0) əmri göndərildi."
+                msg = f"✅ Ünvan {addr} RESET (0) əmri uğurla göndərildi."
             elif action_type == 'TOGGLE':
-                msg = f"✅ Ünvan {addr} TOGGLE əmri göndərildi."
+                msg = f"✅ Ünvan {addr} TOGGLE əmri uğurla göndərildi."
             elif action_type == 'WRITE_REG':
                 msg = f"✅ Ünvan {addr} registrə {val} qiyməti yazıldı."
 
@@ -720,7 +1034,7 @@ def read_write():
             <td>{t_badge}</td>
             <td class='font-monospace text-warning fw-bold'>{r[2]}</td>
             <td>{r[3]}</td>
-            <td class='font-monospace text-success'>0 (Live Simulation)</td>
+            <td class='font-monospace text-success'>0 (Online Sim)</td>
         </tr>"""
 
     content = f'''
@@ -735,19 +1049,17 @@ def read_write():
                 <form method="POST">
                     <div class="mb-2">
                         <label>Bit Ünvanı (Address / Coil)</label>
-                        <input type="number" name="address" class="form-control" placeholder="Məs: 1 və ya 0" required>
+                        <input type="number" name="address" class="form-control" placeholder="Məs: 1 və ya 76" required>
                     </div>
                     <div class="mb-3">
                         <label>Əməliyyat Növü</label>
                         <select name="action_type" class="form-select">
-                            <option value="SET">SET (1 et)</option>
-                            <option value="RESET">RESET (0 et)</option>
-                            <option value="TOGGLE">TOGGLE (Tərş̧ə çevir)</option>
+                            <option value="SET">SET (1 et / Aktivləşdir)</option>
+                            <option value="RESET">RESET (0 et / Söndür)</option>
+                            <option value="TOGGLE">TOGGLE (Tərsinə çevir)</option>
                         </select>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success flex-grow-1 fw-bold">🚀 Əmri Göndər</button>
-                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">🚀 Komandanı Göndər</button>
                 </form>
             </div>
             
@@ -757,7 +1069,7 @@ def read_write():
                     <input type="hidden" name="action_type" value="WRITE_REG">
                     <div class="mb-2">
                         <label>Registr Ünvanı</label>
-                        <input type="number" name="address" class="form-control" placeholder="Məs: 40001" required>
+                        <input type="number" name="address" class="form-control" placeholder="Məs: 40001 və ya 100" required>
                     </div>
                     <div class="mb-3">
                         <label>Yazılacaq Dəyər (Value)</label>
@@ -793,161 +1105,7 @@ def read_write():
     '''
     return render_page(content, t, lang)
 
-@app.route('/modbus/delete/<int:reg_id>')
-def delete_modbus_reg(reg_id):
-    with sqlite3.connect(DB) as conn:
-        conn.execute("DELETE FROM modbus_registers WHERE id=?", (reg_id,))
-        conn.commit()
-    return redirect('/modbus')
-
-@app.route('/orders')
-def orders():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    with sqlite3.connect(DB) as conn:
-        orders_list = conn.execute('''
-            SELECT o.id, o.date, c.name, v.plate_number, r.name, o.volume_m3, o.price_per_m3, (o.volume_m3 * o.price_per_m3), op.name, o.status
-            FROM orders o
-            LEFT JOIN clients c ON o.client_id = c.id
-            LEFT JOIN vehicles v ON o.vehicle_id = v.id
-            LEFT JOIN recipes r ON o.recipe_id = r.id
-            LEFT JOIN operators op ON o.operator_id = op.id
-            ORDER BY o.date DESC
-        ''').fetchall()
-    
-    rows = ""
-    for o in orders_list:
-        rows += f"""<tr>
-            <td>{o[0]}</td>
-            <td>{o[1][:16]}</td>
-            <td><b>{o[2]}</b></td>
-            <td>{o[3]}</td>
-            <td>{o[4]}</td>
-            <td>{o[5]} m³</td>
-            <td>{o[6]} AZN</td>
-            <td class='text-warning fw-bold'>{o[7]} AZN</td>
-            <td>{o[8]}</td>
-            <td><span class='badge bg-success'>{o[9]}</span></td>
-        </tr>"""
-
-    content = f'''
-    <h2 class="text-warning mb-4">📦 {t['orders']}</h2>
-    <div class="card p-4 shadow">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark">
-                        <th>{t['id']}</th>
-                        <th>{t['date']}</th>
-                        <th>{t['client']}</th>
-                        <th>{t['mixer']}</th>
-                        <th>{t['recipe']}</th>
-                        <th>{t['volume']}</th>
-                        <th>{t['price_m3']}</th>
-                        <th>{t['total_price']}</th>
-                        <th>{t['operator']}</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows if rows else "<tr><td colspan='10' class='text-center text-muted'>Sifariş yoxdur.</td></tr>"}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    '''
-    return render_page(content, t, lang)
-
-@app.route('/recipes')
-def recipes():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    recipes_list = get_all('recipes')
-    rows = ""
-    for r in recipes_list:
-        rows += f"""<tr>
-            <td>{r[0]}</td>
-            <td><b>{r[1]}</b></td>
-            <td>{r[2]} kq</td>
-            <td>{r[3]} kq</td>
-            <td>{r[4]} kq</td>
-            <td>{r[5]} kq</td>
-            <td>{r[6]} kq</td>
-            <td>{r[7]} kq</td>
-            <td>{r[8]} kq</td>
-            <td>{r[9]} kq</td>
-            <td>{r[10]} lt</td>
-            <td>{r[11]} %</td>
-        </tr>"""
-    content = f'''
-    <h2 class="text-warning mb-4">🧪 {t['recipes']}</h2>
-    <div class="card p-4 shadow">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark">
-                        <th>ID</th>
-                        <th>Marka / Ad</th>
-                        <th>Bunker 1</th>
-                        <th>Bunker 2</th>
-                        <th>Bunker 3</th>
-                        <th>Bunker 4</th>
-                        <th>Silo 1</th>
-                        <th>Silo 2</th>
-                        <th>Silo 3</th>
-                        <th>Silo 4</th>
-                        <th>Su</th>
-                        <th>Qatqı</th>
-                    </tr>
-                </thead>
-                <tbody>{rows}</tbody>
-            </table>
-        </div>
-    </div>'''
-    return render_page(content, t, lang)
-
-@app.route('/stock')
-def stock():
-    lang = get_lang()
-    t = TRANSLATIONS[lang]
-    stock_list = get_all('stock')
-    rows = ""
-    for s in stock_list:
-        pct = min(100, max(0, int((s[3] / s[4]) * 100))) if s[4] > 0 else 0
-        color = "bg-success" if pct > 30 else "bg-warning" if pct > 15 else "bg-danger"
-        rows += f"""<tr>
-            <td>{s[0]}</td>
-            <td><span class='badge bg-secondary'>{s[1]}</span></td>
-            <td><b>{s[2]}</b></td>
-            <td class='text-warning fw-bold'>{s[3]:,.1f} kq</td>
-            <td>{s[4]:,.1f} kq</td>
-            <td style='width: 250px;'>
-                <div class='progress bg-dark' style='height: 20px;'>
-                    <div class='progress-bar {color}' role='progressbar' style='width: {pct}%;'>{pct}%</div>
-                </div>
-            </td>
-        </tr>"""
-    content = f'''
-    <h2 class="text-warning mb-4">🪨 {t['stock']}</h2>
-    <div class="card p-4 shadow">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead>
-                    <tr class="table-dark">
-                        <th>ID</th>
-                        <th>Material Növü</th>
-                        <th>Silo / Bunker</th>
-                        <th>{t['current_stock']}</th>
-                        <th>{t['max_capacity']}</th>
-                        <th>Doluluk</th>
-                    </tr>
-                </thead>
-                <tbody>{rows}</tbody>
-            </table>
-        </div>
-    </div>'''
-    return render_page(content, t, lang)
-
+# --- OTHER PAGES & DIRECTORIES ---
 @app.route('/reports')
 def reports():
     lang = get_lang()
@@ -1030,7 +1188,8 @@ def company():
 def operators():
     lang = get_lang()
     t = TRANSLATIONS[lang]
-    ops = get_all('operators')
+    with sqlite3.connect(DB) as conn:
+        ops = conn.execute("SELECT * FROM operators").fetchall()
     rows = "".join([f"<tr><td>{o[0]}</td><td><b>{o[1]}</b></td><td>{o[2]}</td></tr>" for o in ops])
     content = f'''<h2 class="text-warning mb-4">👷 {t['operators']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
@@ -1039,7 +1198,8 @@ def operators():
 def drivers():
     lang = get_lang()
     t = TRANSLATIONS[lang]
-    drv = get_all('drivers')
+    with sqlite3.connect(DB) as conn:
+        drv = conn.execute("SELECT * FROM drivers").fetchall()
     rows = "".join([f"<tr><td>{d[0]}</td><td><b>{d[1]}</b></td><td>{d[2]}</td><td>{d[3]}</td></tr>" for d in drv])
     content = f'''<h2 class="text-warning mb-4">🚚 {t['drivers']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Ad Soyad</th><th>Tel</th><th>{t['license']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
@@ -1048,8 +1208,9 @@ def drivers():
 def vehicles():
     lang = get_lang()
     t = TRANSLATIONS[lang]
-    veh = get_all('vehicles')
-    rows = "".join([f"<tr><td>{v[0]}</td><td><b>{v[1]}</b></td><td>{v[2]} m³</td><td>{v[3]} kg</td></tr>" for v in veh])
+    with sqlite3.connect(DB) as conn:
+        veh = conn.execute("SELECT * FROM vehicles").fetchall()
+    rows = "".join([f"<tr><td>{v[0]}</td><td><b>{v[1]}</b></td><td>{v[2]} m³</td><td>{v[4]} kg</td></tr>" for v in veh])
     content = f'''<h2 class="text-warning mb-4">🚛 {t['vehicles']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Dövlət Nömrəsi</th><th>Həcm</th><th>Tara (Boş Çəki)</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
 
@@ -1057,16 +1218,18 @@ def vehicles():
 def clients():
     lang = get_lang()
     t = TRANSLATIONS[lang]
-    cl = get_all('clients')
+    with sqlite3.connect(DB) as conn:
+        cl = conn.execute("SELECT * FROM clients").fetchall()
     rows = "".join([f"<tr><td>{c[0]}</td><td><b>{c[1]}</b></td><td>{c[2]}</td><td>{c[3]}</td></tr>" for c in cl])
     content = f'''<h2 class="text-warning mb-4">🏢 {t['clients']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>{t['client']}</th><th>Tel</th><th>{t['address']}</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
 
-@app.route('/suppliers')
+@app.row if False else app.route('/suppliers')
 def suppliers():
     lang = get_lang()
     t = TRANSLATIONS[lang]
-    sup = get_all('suppliers')
+    with sqlite3.connect(DB) as conn:
+        sup = conn.execute("SELECT * FROM suppliers").fetchall()
     rows = "".join([f"<tr><td>{s[0]}</td><td><b>{s[1]}</b></td><td>{s[2]}</td></tr>" for s in sup])
     content = f'''<h2 class="text-warning mb-4">🏭 {t['suppliers']}</h2><div class="card p-4 shadow"><table class="table table-striped"><thead><tr class="table-dark"><th>ID</th><th>Təchizatçı</th><th>Tel</th></tr></thead><tbody>{rows}</tbody></table></div>'''
     return render_page(content, t, lang)
