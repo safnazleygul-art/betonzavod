@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, redirect, session, url_for, jsonify
+from flask import Flask, render_template_string, request, redirect, session, url_for
 import sqlite3
 import os
 import csv
@@ -117,7 +117,6 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, plc_ip TEXT DEFAULT '192.168.1.50', plc_port INTEGER DEFAULT 502, slave_id INTEGER DEFAULT 1
         )''')
         
-        # Таблица регистров с полем текущего значения current_val для интерактивного пульта
         conn.execute('''CREATE TABLE IF NOT EXISTS modbus_registers (
             id INTEGER PRIMARY KEY AUTOINCREMENT, tag_name TEXT, data_type TEXT, address INTEGER, description TEXT, current_val REAL DEFAULT 0.0
         )''')
@@ -178,14 +177,17 @@ def init_db():
                                 except ValueError:
                                     data_type, addr_type, addr = 0, 0, 0
                                 
-                                if addr_type == 1:
+                                tag_upper = tag.upper()
+                                # Умное распознавание битовых команд миксера, лент и затворов
+                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU']
+                                if addr_type == 1 or (any(kw in tag_upper for kw in bit_keywords) and data_type == 0 and addr_type == 0):
                                     dtype = "BIT"
                                 elif data_type == 2 or addr_type == 4:
                                     dtype = "REAL / DWORD"
                                 else:
                                     dtype = "REGISTER (WORD)"
                                 
-                                mod_records.append((tag, dtype, addr, f"DataType:{data_type}, AddrType:{addr_type}", 0.0))
+                                mod_records.append((tag, dtype, addr, f"CSV (DataType:{data_type}, AddrType:{addr_type})", 0.0))
                     if mod_records:
                         cursor.executemany("INSERT INTO modbus_registers (tag_name, data_type, address, description, current_val) VALUES (?, ?, ?, ?, ?)", mod_records)
                 except Exception as e:
@@ -229,7 +231,8 @@ def render_page(content_html, t, current_lang, hide_nav=False):
                 <li class="nav-item"><a class="nav-link px-2 rounded" href="/stock">{t['stock']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded" href="/reports">{t['reports']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded text-warning fw-bold" href="/scada">🖥️ {t['scada']}</a></li>
-                <li class="nav-item"><a class="nav-link px-2 rounded text-info fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
+                <li class="nav-item"><a class="nav-link px-2 rounded text-info fw-bold" href="/settings">⚙️ {t['settings']}</a></li>
+                <li class="nav-item"><a class="nav-link px-2 rounded text-danger fw-bold" href="/modbus">🔌 {t['modbus']}</a></li>
                 <li class="nav-item"><a class="nav-link px-2 rounded text-success fw-bold" href="/modbus/control">{t['modbus_control']}</a></li>
                 <li class="nav-item dropdown ms-xl-2">
                   <a class="nav-link dropdown-toggle px-2 rounded text-light fw-semibold" href="#" role="button" data-bs-toggle="dropdown">📂 {t['directories']}</a>
@@ -354,7 +357,9 @@ def modbus():
                                 except ValueError:
                                     data_type, addr_type, addr = 0, 0, 0
                                 
-                                if addr_type == 1:
+                                tag_upper = tag.upper()
+                                bit_keywords = ['START', 'ULD', 'UC', 'BANDI', 'SILO', 'AC', 'KC', 'ALMAQ', 'VERME', 'BOSALT', 'STOP', 'SU']
+                                if addr_type == 1 or (any(kw in tag_upper for kw in bit_keywords) and data_type == 0 and addr_type == 0):
                                     dtype = "BIT"
                                 elif data_type == 2 or addr_type == 4:
                                     dtype = "REAL / DWORD"
@@ -450,7 +455,6 @@ def delete_modbus_tag(reg_id):
         conn.commit()
     return redirect('/modbus')
 
-# НОВЫЙ ИНТЕРАКТИВНЫЙ ТЕСТ-ПУЛЬТ (MODBUS CONTROL & MONITOR)
 @app.route('/modbus/control', methods=['GET', 'POST'])
 def modbus_control():
     lang = get_lang()
@@ -525,7 +529,7 @@ def modbus_control():
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="text-success mb-1">⚡ Modbus TCP Test & Control Panel</h2>
-            <p class="text-secondary mb-0">Отправка команд, переключение битов (Toggle / Reset / Set) и запись значений в регистры в реальном времени.</p>
+            <p class="text-secondary mb-0">Управление битами миксера и затворов (Toggle / Reset / Set) и запись значений в регистры.</p>
         </div>
         <a href="/modbus" class="btn btn-outline-light btn-sm">⚙️ Настройка тегов</a>
     </div>
@@ -552,7 +556,6 @@ def modbus_control():
     '''
     return render_page(content, t, lang)
 
-# Остальные заглушки навигации
 @app.route('/orders')
 def orders(): return render_page("<h2 class='text-warning'>📦 Sifarişlər Modulu</h2>", TRANSLATIONS[get_lang()], get_lang())
 @app.route('/recipes')
