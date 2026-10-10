@@ -382,7 +382,7 @@ def render_page(content_html, t, current_lang, hide_nav=False):
     nav_bar = ""
     if not hide_nav:
         nav_bar = f"""
-        <nav class="navbar navbar-expand-xl navbar-dark bg-dark border-bottom border-secondary mb-4 shadow px-3 d-print-none">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary mb-4 shadow px-3 d-print-none">
           <div class="container-fluid">
             <a class="navbar-brand text-warning fw-bold fs-5" href="/">🏗️ {comp_name}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
