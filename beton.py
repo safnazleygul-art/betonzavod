@@ -375,7 +375,7 @@ def init_db():
             ]
             cursor.executemany("INSERT INTO recipes (name, bunker_1, bunker_2, bunker_3, bunker_4, silo_1, silo_2, silo_3, silo_4, water, qatki_percent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", recipes_data)
             
-            # Populate Modbus registers from shabran.gpf.csv if exists
+            # Auto-import Modbus registers from shabran.gpf.csv if present
             if os.path.exists('shabran.gpf.csv'):
                 try:
                     mod_records = []
@@ -549,7 +549,6 @@ def modbus():
                 file = request.files['upload_csv']
                 if file and file.filename.endswith('.csv'):
                     content_bytes = file.read()
-                    # Try decoding with utf-16le or utf-8
                     text_content = ""
                     for enc in ['utf-16le', 'utf-8', 'cp1251']:
                         try:
@@ -562,7 +561,6 @@ def modbus():
                         reader = csv.reader(f_stream, delimiter='\t')
                         next(reader, None)
                         next(reader, None)
-                        imported_count = 0
                         for row in reader:
                             if len(row) >= 6:
                                 tag = row[0].strip(' "')
@@ -575,7 +573,6 @@ def modbus():
                                 dtype = "BIT" if addr_type == 1 else "REGISTER"
                                 conn.execute("INSERT INTO modbus_registers (tag_name, data_type, address, description) VALUES (?, ?, ?, ?)",
                                              (tag, dtype, addr, f"Imported CSV Tag (Type: {addr_type})"))
-                                imported_count += 1
             conn.commit()
             return redirect('/modbus')
 
@@ -940,7 +937,7 @@ def nakladnoy(id):
         
         <table class="table table-bordered align-middle text-center mb-3">
             <thead class="table-dark">
-                <tr><th>{t['product_name']}</th><th>{t['volume']}</th><th>{t['price_m3']}</th><th>{t['total_ price']}</th></tr>
+                <tr><th>{t['product_name']}</th><th>{t['volume']}</th><th>{t['price_m3']}</th><th>{t['total_price']}</th></tr>
             </thead>
             <tbody>
                 <tr>
